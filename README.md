@@ -44,7 +44,7 @@ exit 0
 ```
 All ``${section:option}`` strings (template strings) are replaced by the specified values in ``Launch.ini`` and especially ``JobConfig.ini``:
 
-**Launch.ini**:   
+**Launch.ini :**  
 ```
 ...
 [Cluster]
@@ -52,7 +52,7 @@ jobName = MyDataVisualization-Test1
 mailAddress = user@mail.com
 ...
 ```
-**JobConfig.ini**
+**JobConfig.ini :**
 ```
 ...
 [Job]
