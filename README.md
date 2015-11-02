@@ -5,14 +5,14 @@ If you are doing high performance computing on a linux cluster and are bored fro
 This python module has been developed during research for granular rigid body dynamics where complex and huge parallel MPI jobs needed to be configured in an uniform an reproducable way by using mainly one configuration file which acts as the main config file for the jobs [Link](http://www.zfm.ethz.ch/~nuetzig/?page=research). These jobs uncluded parallel tasks such as visualization, e.g rendering, general rigid body simulations, data analysis and image correlation on the HPC Euler and Brutus at ETH Zürich.
 
 
-This modules is best described with an example:
+This module is best described with an example:
 The user sets up a job configuration folder ``myJob`` consiting of two files ``Launch.ini`` and ``JobConfig.ini``.
 
   - **The ``Launch.ini``** is a config file for all command line arguments to the configurator script ``configureJob.py``. It is not so important but handy.
   - **The ``JobConfig.ini``** is **the main** job configuration file which is used for the job generator type specified at the command line to ``configureJob.py`` or in the ``Launch.ini``.
 
 By using the ``configureJob.py`` script, the user configures the job (or a sequence of jobs) and the configuration files are written commonly to a job specific configuration folder
-``myJob/Launch_myJob.0/`` (or ``myJob/Launch_myJob.0/``,``myJob/Launch_myJob.1/``,... for a sequence of job configurations). What configuration files are written is dependent on the generator type used. The job generator is specified in the ``Launch.ini``. The job generator is a python class which is loaded and executed. 
+``myJob/Launch_myJob.0/`` (or ``myJob/Launch_myJob.0/``,``myJob/Launch_myJob.1/``,... for a sequence of job configurations). What configuration files are written is dependent on the used type of job generator. The job generator is specified in the ``Launch.ini``. The job generator is a python class which is loaded and executed. 
 
 The main job generator for HPC tasks is the ``JobGeneratorMPI`` which generates a general launchable MPI task which consists of the following main Bash files executed in the main execution file ``launch.sh`` :
 
@@ -82,10 +82,10 @@ file = "${General:currentWorkDir}/../configIN.xml"
 ```
 As can be seen, the variables in both ``.ini`` files are interpolated, and can be used all over the place.
 Also environment variables are possible, specified by the syntax ``ENV::Variable``.
-The user is free to add arbitrary variables and use them in other templates (any text file)
-The job generator uses ``.ini`` files because they allow comments and explanations which is pleasing.
-The options under the ``Template`` section specifies the template files to be substituted, if no same option is present under the ``TemplateOut`` section which specifies the output file, the files are written to ``${Job:scriptDir}``
-The ``myOtherFancyTemplate2`` is a template where the string in ``{...}`` is parsed as JSON string and allows the specify a special template adjuster. The default one is the one given above, namely the ``DictionaryAdjuster`` in ``jobGenerators/dictionaryAdjuster.py`` which can be given a set of other ``"additionalFiles"`` (JSON files) which are parsed and added to the set of replacement variables. This means the ``file`` under the section ``MyStuff`` can contain dictionary references, e.g. ``${expSettings:A:B:dimension}``, given in the json file ``${General:currentWorkDir}/data/ExperimentSettings.json``:
+The user is free to add arbitrary variable definitions and use those in other templates (any text file) for example the ``myOtherFancyTemplate`` or ``myOtherFancyTemplate2`` above.
+The job generator uses ``.ini`` files because they allow comments and explanations which is pleasing. (This will be changed to ``.json`` or ``.json`` files in the future)
+The options under the ``Template`` section specifies the template files to be substituted, if no same option is present under the ``TemplateOut`` section which specifies the output file, the files are written to the folder ``${Job:scriptDir}``
+The ``myOtherFancyTemplate2`` is a template where the string in ``{...}`` is parsed as JSON string and allows the user to specify a special template adjuster. The default one is the one given above, namely the ``DictionaryAdjuster`` in ``jobGenerators/dictionaryAdjuster.py`` which can be given a set of other ``"additionalFiles"`` (JSON files) which are parsed and added to the set of replacement variables. This means the ``file`` under the section ``MyStuff`` can contain dictionary references, e.g. ``${expSettings:A:B:dimension}``, given in the json file ``${General:currentWorkDir}/data/ExperimentSettings.json``:
 
 **ExperimentSettings.json**
 ```
