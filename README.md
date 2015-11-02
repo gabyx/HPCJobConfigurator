@@ -42,7 +42,7 @@ try mkdir -p ${Job:globalDir}
 
 exit 0
 ```
-All ``${section:option}`` strings (template strings) are replaced by the specified values in ``Launch.ini`` and especially ``JobConfig.ini``:
+All ``${section:option}`` strings (template strings) are replaced by the specified values in ``Launch.ini`` and especially ``JobConfig.ini``. Let us look at some extraction of these files:
 
 **Launch.ini :**  
 ```
@@ -63,12 +63,13 @@ jobName              = ${Cluster:jobName}.${Job:jobIdx}
 scriptDirName        = Launch_${Job:jobName}
 scriptDir            = ${Cluster:jobGeneratorOutputDir}/${Job:scriptDirName}
 
-processIdxVariabel   = $${OMPI_COMM_WORLD_RANK}
 
 [Templates]
 startJob                = ${General:modulePathGenerators}/jobGenerators/jobGeneratorMPI/generatorToolPipeline/templates/start.sh
-myOtherFancyTemplate    = ./path/to/some/template.xml
+# ....
 
+# other templates ...... 
+myOtherFancyTemplate    = ./path/to/some/template.xml
 
 myOtherFancyTemplate2   = { "inputFile" : "${MyStuff:file}" , "configurator" : { "modulePath" : "${General:modulePathGenerators}/jobGenerators/dictionaryAdjuster.py" , "moduleName" : "dictionaryAdjuster" , "className" : "DictionaryAdjuster" }, "settings" : {"additionalFiles" : [{"path":"${General:currentWorkDir}/data/ExperimentSettings.json" , "parentName":"expSettings"}] } }
 
