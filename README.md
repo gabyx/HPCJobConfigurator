@@ -47,7 +47,28 @@ exit 0
 ```
 All ``${section:option}`` strings (template strings) are replaced by the specified values in ``Launch.ini`` and especially ``JobConfig.ini``. 
 
-Let us look at some extraction of these files from the [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job:
+The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job which has the following folder structure
+```
+├── JobConfig.ini                # Job configuration .ini file 
+├── Launch.ini                   # configureJob.py .ini file
+├── data
+│   └── DataVisSettings.json     # some data to be used to configure the tempaltes
+├── scripts
+│   └── simpleExeConfigurator.py # the configurator
+└── templates                    # two template files which are configured
+    ├── Input1.xml
+    └── Input2.txt
+````
+The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job can be configured by
+```
+cd examples/simple
+export MYGLOBALSCRATCH_DIR="$(pwd)/scratch/global"
+export MYLOCALSCRATCH_DIR="$(pwd)/scratch/local"
+python3 ../../HPCJobConfigurator/configureJob.py -x JobConfig.ini 
+```
+which configures one job under ``examples/simple/cluster/Launch_MyDataVisualization.0``.
+
+Lets look at some extraction of the two .ini files above:
 
 **[Launch.ini](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/Launch.ini):**  
 ```
@@ -89,34 +110,20 @@ dataType = grid
 ```
 As can be seen, the variables (in the form ``${section:option}``) in both ``.ini`` files are interpolated, and can be used all over the place.
 Also environment variables are possible, specified by the syntax ``ENV::Variable``.
-The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job can be configured by
-```
-cd examples/simple
-export MYGLOBALSCRATCH_DIR="$(pwd)/scratch/global"
-export MYLOCALSCRATCH_DIR="$(pwd)/scratch/local"
-python3 ../../HPCJobConfigurator/configureJob.py -x JobConfig.ini 
-```
-which configures one job under `examples/simple/cluster/Launch_MyDataVisualization.0``.
 
 The user is free to add arbitrary variable definitions and use those in other templates (any text file) for example the ``myOtherFancyTemplate`` or ``myOtherFancyTemplate2`` above.
-The job generator uses ``.ini`` files because they allow comments and explanations which is pleasing. (That might possible be changes ``.json`` files in the future)
+The job generator uses ``.ini`` files because they allow comments and explanations which is pleasing. (That might possible change in the future to support also ``.json`` files)
 The options under the ``Template`` section specifies the template files to be substituted, if no same option is present under the ``TemplateOut`` section which specifies the output file, the files are written to the folder ``${Job:scriptDir}``
-The ``myOtherFancyTemplate2`` is a template where the string in ``{...}`` is parsed as JSON string and allows the user to specify a special template adjuster. The default one is the one given above, namely the ``DictionaryAdjuster`` in ``jobGenerators/dictionaryAdjuster.py`` which can be given a set of other ``"additionalFiles"`` (JSON files) which are parsed and added to the set of replacement variables. This means the ``${General:jobDir}/templates/input2.txt` under the section can contain dictionary references, e.g. ``${gaga2:dic1:dic2:dic3:value}``, given in the json file ``${General:jobDir}/data/DataVisSettings.json`:
 
-**[DataVisSettings.json](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/data/DataVisSettings.json)**
-```
-{
-    "dataVisSettings" : {
-        "minPoint" : "3.123",
-        "plotOptions"     : "--dashed --masked --colored"
-    },
-    "otherSettings" : {
-        "type" : "awesome grid"
-    }
-}
-```
+The ``myOtherFancyTemplate2`` is a template where the string in ``{...}`` is parsed as JSON string and allows the user to specify a special template adjuster. The default one is the one given above, namely the ``DictionaryAdjuster`` in ``jobGenerators/dictionaryAdjuster.py`` which can be given a set of other ``"additionalFiles"`` (JSON files) which are parsed and added to the set of replacement variables. This means the ``${General:jobDir}/templates/input2.txt`` under the section can contain dictionary references, e.g. ``${gaga2:dic1:dic2:dic3:value}``, given in the json file ``${General:jobDir}/data/DataVisSettings.json`` and also references to variables in the ``.ini`` files.
 
-To be continued...
+If you look at the output folder ``examples/simple/cluster/Launch_MyDataVisualization.0``, you will find all configured scripts, bash scripts to launch the MPI job and so on.
+
+Of course this is only a simple example. A more difficult example is provided by a an Image Correlation Task where each MPI process executes a tool pipeline consisting of some image processing and afterwards some image correlation, this job is explained in the followin to give the user more insight how this tool works.
+
+## Parallel Image Coorelation Job 
+to be continued
+
 
 ## Dependencies
 python 3, lxml, glob2, jsonpickle, demjson, AttrMap
