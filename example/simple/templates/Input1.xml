@@ -1,0 +1,3 @@
+<Data type="${MySettings:dataType}">
+    Some test data :-)!!
+</Data>

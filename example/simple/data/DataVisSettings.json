@@ -1,0 +1,9 @@
+{
+    "dataVisSettings" : {
+        "minPoint" : "3.123",
+        "plotOptions"     : "--dashed --masked --colored"
+    },
+    "otherSettings" : {
+        "type" : "someotherstuff"
+    }
+}

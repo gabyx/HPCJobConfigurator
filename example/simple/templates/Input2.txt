@@ -1,0 +1,4 @@
+# Input2.txt===============================
+MinPoint: ${gaga2:dataVisSettings:minPoint}
+PlotOptions: ${gaga2:dataVisSettings:plotOptions}
+# =========================================
