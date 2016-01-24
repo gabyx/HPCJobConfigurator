@@ -42,10 +42,13 @@ class FrameGenerator:
                                 app=simInfoApp);
 
         for f,info in infos.items():
+            
+            
             startIdx = info.resampleInfo.startIdx;
             endIdx = info.resampleInfo.endIdx;
             incr = info.resampleInfo.increment;
             stateIndices = info.resampleInfo.stateIndices
+            print("SimFile: %s , startIdx: %i, endIdx: %i, incr: %i" % (f, startIdx,endIdx,incr) )
             
             if stateIndices is None:
                 # this is a file where we dont take any states
@@ -80,7 +83,7 @@ class FrameGenerator:
                                     },
                                 "fileMover" : list([])
                                }
-                               for t in zip(idx,times)  ]    
+                               for t in zip(stateIndices,times)  ]    
             
         # assign a frame number to each stateIdx in framesPerFile, order according to time
         allFrames = []

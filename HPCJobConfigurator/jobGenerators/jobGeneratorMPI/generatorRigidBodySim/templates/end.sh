@@ -7,7 +7,7 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-#!/bin/bash    
+    
 SIMINFO=$( ${RigidBodySim:executableConverter} siminfo -i ${RigidBodySim:simFilePath} )
 if [[ "${Cluster:mailAddress}" != "" ]];  then
 echo -e "$SIMINFO" | mail -s "Job: ${Job:jobName} has finished" ${Cluster:mailAddress}

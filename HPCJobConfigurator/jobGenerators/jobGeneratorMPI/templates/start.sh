@@ -7,7 +7,7 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-#!/bin/bash    
+    
 
 ES="start.sh:"
 
@@ -18,7 +18,7 @@ try() { "$@" || die "cannot $*"; }
 
 
 
-if [[ "${Cluster:mailAddress}" != "" ]];  then
+if [[ "${Cluster:mailAddress}" != "" ]] ;  then
     echo "EOM" | mail -s "Job: ${Job:jobName} has started" ${Cluster:mailAddress} 
 fi
 

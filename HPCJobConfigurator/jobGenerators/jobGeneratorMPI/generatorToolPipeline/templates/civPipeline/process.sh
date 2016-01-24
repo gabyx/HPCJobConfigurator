@@ -7,7 +7,7 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-#!/bin/bash
+
 
 ES="process.sh:"
 
@@ -60,7 +60,7 @@ logFile="${Job:processDir}/processLog.log"
 
 
 # Set important PYTHON stuff
-export PYTHONPATH=${General:modulePathJobGen}
+export PYTHONPATH=${General:configuratorModulePath}
 # matplotlib directory
 export MPLCONFIGDIR=${Job:processDir}/temp/matplotlib
 try mkdir -p $MPLCONFIGDIR

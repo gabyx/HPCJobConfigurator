@@ -7,7 +7,7 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-#!/bin/bash    
+    
 
 yell() { echo "$0: $*" >&2; }
 die() { yell "$*"; exit 111; }
@@ -18,7 +18,7 @@ logFile="${Job:scriptDir}/startLog.log"
 :> $logFile
 
 # preperation for render job
-PYTHONPATH=${General:modulePathJobGen}
+PYTHONPATH=${General:configuratorModulePath}
 export PYTHONPATH
 try python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.prepareToolPipeline  \
         --pipelineSpecs="${Pipeline:pipelineSpecs}" \
@@ -27,7 +27,7 @@ try python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipe
         >> $logFile 2>&1
 
 
-if [[ "${Cluster:mailAddress}" != "" ]];  then
+if [[ "${Cluster:mailAddress}" != "" ]] ;  then
     cat $logFile | mail -s "Job: ${Job:jobName} has started" ${Cluster:mailAddress}
 fi
 

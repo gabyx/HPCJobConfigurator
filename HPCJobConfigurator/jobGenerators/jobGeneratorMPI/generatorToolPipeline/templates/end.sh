@@ -7,7 +7,7 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-#!/bin/bash 
+ 
 
 
 logFile="${Job:scriptDir}/endLog.log"
@@ -31,7 +31,7 @@ try() { "$@" || die "cannot $*"; }
 
 executeFilevalidation(){
     # assemble pipeline status
-    PYTHONPATH=${General:modulePathJobGen}
+    PYTHONPATH=${General:configuratorModulePath}
     export PYTHONPATH
 
     python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \

@@ -19,10 +19,10 @@ converterEnvDefault = "SIMCONV"
 
 class SimFileInfo(object):
     def __str__(self):
-        return "SimInfo: " + var_dump(self)
+        return "SimInfo: " + str(vars(self))
 class ResampleInfo(object):
     def __str__(self):
-        return "ResampleInfo: " + var_dump(self)
+        return "ResampleInfo: " + str(vars(self))
 
 
 
