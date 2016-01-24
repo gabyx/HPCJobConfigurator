@@ -1,5 +1,6 @@
+#!/bin/bash
 # =====================================================================
-#  HPClusterJobConfigurator
+#  HPCJobConfigurator
 #  Copyright (C) 2014 by Gabriel Nützi <gnuetzi (at) gmail (dot) com>
 #
 #  This Source Code Form is subject to the terms of the Mozilla Public
