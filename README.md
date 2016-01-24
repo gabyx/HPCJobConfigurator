@@ -1,4 +1,4 @@
-# HPC Cluster Job Configurator
+# Job Configurator for Cluster Computing 
 ## Python module to generate highly configurable user-defined jobs on a high-performance cluster
 
 If you are doing high performance computing on a linux cluster and are bored from dealing with tons of configurations files for maintaining a parallel job configuration.
