@@ -108,7 +108,7 @@ class DictionaryAdjuster:
            print("Replacement dictionary for file %s:" % inputFile)
            self.prettyPrint.pprint(self.replacementDict)
 
-        
+        self.inputFile = inputFile # save in class for log output if error
         self.writeTemplate(inputFile,self.replacementDict,outputFile,makeExecutable)
     
     
@@ -117,7 +117,7 @@ class DictionaryAdjuster:
         try:        
             t = src.substitute( substDict )
         except KeyError as k:
-            raise ValueError("Template substitution for '%s' failed for because %s" % (outputFile,k) )
+            raise ValueError("Template substitution from input file: '%s' \nto output file '%s' failed for substitution %s" % (self.inputFile,outputFile,k) )
         fileout = open( outputFile, 'w+')
         fileout.write(t)      
     
