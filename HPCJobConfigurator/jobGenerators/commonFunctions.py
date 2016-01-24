@@ -45,7 +45,7 @@ class CommonFunctions:
             else:
                 raise ValueError("Converting type: %s with value: %s to bool is deliberately not supported!" % (type(s),s))
 
-    def expandEnvVar(string, envVarRegex = "ENV::(\w*)", errorIfNotFullyExpanded=False): 
+    def expandEnvVar(string, envVarRegex = "ENV::(\w*)", errorIfNotFullyExpanded=True): 
         """Expands all environment variables in the string"""
         def expandVar(s):
           s = os.path.expandvars(s)
