@@ -21,7 +21,7 @@ class FrameGenerator:
         self.pipelineSpecs = pipelineSpecs
         self.pipelineTools = pipelineSpecs["pipelineTools"]
         
-    def __call__(self,simFiles, startIdx,endIdx,increment,skipFirstState,simInfoApp, checkForDoubleTimes = True):
+    def __call__(self,simFiles, startIdx,endIdx,increment,skipFirstState,simInfoApp, enumerateFramesStart=0, checkForDoubleTimes = True):
         
         print("FrameGenerator Render Pipeline ==========================")
 
@@ -42,7 +42,6 @@ class FrameGenerator:
                                 app=simInfoApp);
 
         for f,info in infos.items():
-            
             
             startIdx = info.resampleInfo.startIdx;
             endIdx = info.resampleInfo.endIdx;
@@ -77,7 +76,7 @@ class FrameGenerator:
                                            }, self.pipelineTools["converter"] ) , 
                                         "renderer": 
                                             updateDict({
-                                            "frameIdx":0, 
+                                            "frameIdx":0,  # will be assigned below
                                             "status":"render"
                                             },self.pipelineTools["renderer"] )
                                     },
@@ -85,14 +84,14 @@ class FrameGenerator:
                                }
                                for t in zip(stateIndices,times)  ]    
             
-        # assign a frame number to each stateIdx in framesPerFile, order according to time
+        # assign a frame number to each frameIdx in framesPerFile, order according to time and assign the sta
         allFrames = []
         framesPerIdx = {}
         for path,states in framesPerFile.items():
             allFrames.extend(states)
         allFrames = sorted(allFrames, key=lambda x: x["tools"]["converter"]["time"])
         for i,v in enumerate(allFrames):
-            v["tools"]["renderer"]["frameIdx"]=i  
+            v["tools"]["renderer"]["frameIdx"]= enumerateFramesStart + i*incr
             framesPerIdx[i] = v;
         
         

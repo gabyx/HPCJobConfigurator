@@ -44,6 +44,7 @@ def getSimFileInfos(simFiles, app="Converter", converterEnv = converterEnvDefaul
                                           +simFiles 
                                           + ['--startIdx', str(sIdx), '--endIdx',str(eIdx), '--increment', str(incr)] 
                                           + (["--skipFirstState"] if skipFirstState else []) ,stderr=subprocess.DEVNULL )
+    #print("output: ", standardOut)
     xmlDoc = ET.fromstring(standardOut); 
     
     if returnList:
@@ -84,7 +85,7 @@ def getSimFileInfos(simFiles, app="Converter", converterEnv = converterEnvDefaul
         if indNode is not None:
           s.resampleInfo.stateIndices = [ int(s) for s in indNode.text.strip().split(" ")]
         else:
-          s.resampleInfo.stateIndice = None
+          s.resampleInfo.stateIndices = None
         
         if returnList:
           l.append(s)

@@ -57,58 +57,65 @@ class CommonFunctions:
                        lambda matchObj : expandVar("$"+matchObj.group(1)), string = string )
                                 
 
-    def makeLinks(fileGlobPattern, filePathRegex, subPattern, outputFolder, 
-                  counters = [(0,lambda x: os.path.basename(x))] , hardLink=False):
+    def makeLinks(fileGlobPattern, filePathRegex, subTemplate, outputFolder, 
+                  counters = None , hardLink=False):
         """ Globs all files with the pattern  fileGlobPattern
             and builds for each found file a new symlink where the
             file name is determined by match/substituting the filePath 
-            with the regex: filePathRegex and substitution pattern: subPattern which produces the new file name
+            with the regex: filePathRegex and substitution pattern: subTemplate which produces the new file name
             counter is a list of tuples each consisting of (start, key lambda) which defines the start of a 
             counter and a sort lambda which takes a filepath and returns a sort key for the sort function.
-            all associated counters are then replaced (formatted) in the new file name , substituted by the subPattern.
+            all associated counters are then replaced (formatted) in the new file name , substituted by the subTemplate.
             
             Then, it saves a new symlink in the outputFolder for each of these new file names.
             Example:
-            makeSymlinkSequence("/media/zfmgpu/Data1/GabrielNuetzi/SimFiles/SimFilesBrutus/Avalanche1M-RunDownTrees"+
-                         "/*/ProcessMPI_0/SimDataRECORDMPI_0/TopologyInfo_*.xml", 
-                         r".*Trees/(\d)*/.*_(\d)*.*", 
-                         r"TopologyInfo_\1-\2",
-                         "/media/zfmgpu/Data1/GabrielNuetzi/SimFiles/SimFilesBrutus/Avalanche1M-RunDownTrees/AllTopologies/")
+            makeSymlinkSequence( "./*.xml",   r".*?/Data-(\d*)-(\d*).jpg",    "NewFileLink-\1-\2",       "./output/files")
         """
         reg = re.compile(filePathRegex)
         files = glob2.glob(fileGlobPattern);
-        newFileNames = [  reg.sub(subPattern,f) for f in files]
-        files = zip(files,newFileNames)
+        def matchAndRepl(f):
+          m=reg.match(f)
+          if m:
+            return (f, m.expand(subTemplate),m.groups())
+          else:
+            return None
+        files = [ matchAndRepl(f)  for f in files]
+        files = filter(lambda f: f is not None, files)
+        
 
-
+        
+        # standart counter (sort paths)
+        if counters is None:
+           counters = [(0,lambda path,regexG: os.path.basename(path))]
+        
         for counter in counters:
             count = counter[0] # the start of this counter
-            # sort files alphabetically
-            # hand over the sort key lambda of this counter
-            files = sorted(files, key = lambda x: counter[1](x[0]) ) 
-            # assign counter alphabetically
+            # sort files according to counter sort lambda
+            files = sorted(files, key = lambda f: counter[1]( f[0] , f[2]) ) 
+            # assign counter
             for i,f in enumerate(files):
                 files[i] = f + (count,)
                 count += 1
-            # sort files for modifcation times
-            # TODO (assign counter)
         
         os.makedirs(outputFolder,exist_ok=True);
         print("Make symlinks in folder: ", outputFolder)
         # make symlinks to all files in outputFolder
-        for tu in files:
+        for tu in files:   #list [ (file,newfile, regexGroups, counter1, counter1,..., counterN) , .... ]
             f = tu[0]
-            s = tu[1]
-            simLinkFile = s.format(*tu[2:]);
+            newf = tu[1]
+            if newf is None:
+              continue # skip this file as regex did not match!
+
+            simLinkFile = newf.format(*tu[3:]);
             simLinkPath = os.path.join(outputFolder,simLinkFile) 
-            print("Link: " + os.path.basename(f) + " --- to ---> " + simLinkPath)
+            print("Link: " + f + " --- to ---> " + simLinkPath)
             try:
                 if hardLink:
                     os.link(os.path.abspath(f), simLinkPath );
                 else:
                     os.symlink(os.path.abspath(f), simLinkPath );
             except FileExistsError:
-                continue;
+                print("file exists, continue")
         
 
 
