@@ -1,5 +1,6 @@
+#!/bin/bash
 # =====================================================================
-#  HPClusterJobConfigurator
+#  HPCJobConfigurator
 #  Copyright (C) 2014 by Gabriel Nützi <gnuetzi (at) gmail (dot) com>
 #
 #  This Source Code Form is subject to the terms of the Mozilla Public
@@ -7,7 +8,7 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-#!/bin/bash 
+ 
 
 
 logFile="${Job:scriptDir}/endLog.log"
@@ -31,7 +32,7 @@ try() { "$@" || die "cannot $*"; }
 
 executeFilevalidation(){
     # assemble pipeline status
-    PYTHONPATH=${General:modulePathJobGen}
+    PYTHONPATH=${General:configuratorModulePath}
     export PYTHONPATH
 
     python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \

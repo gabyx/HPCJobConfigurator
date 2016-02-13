@@ -1,5 +1,6 @@
+#!/bin/bash
 # =====================================================================
-#  HPClusterJobConfigurator
+#  HPCJobConfigurator
 #  Copyright (C) 2014 by Gabriel Nützi <gnuetzi (at) gmail (dot) com>
 #
 #  This Source Code Form is subject to the terms of the Mozilla Public
@@ -7,7 +8,7 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-#!/bin/bash
+
 
 yell() { echo "$0: $*" >&2; }
 die() { yell "$*"; cleanup ; exit 111 ; }
@@ -64,7 +65,7 @@ else
 
     cd ${Job:processDir}
 
-    PYTHONPATH=${General:modulePathJobGen}
+    PYTHONPATH=${General:configuratorModulePath}
     export PYTHONPATH
     
     begin=$(date +"%s")
@@ -123,7 +124,7 @@ else
     echo "Start rendering the files" >> $logFile
     echo "Change directory to ${Pipeline:renderExecutionDir}" >> $logFile
     cd ${Pipeline:renderExecutionDir}
-    PYTHONPATH=${General:modulePathJobGen}
+    PYTHONPATH=${General:configuratorModulePath}
     export PYTHONPATH
     
     begin=$(date +"%s")

@@ -25,14 +25,17 @@ except ImportError as e:
 
 import inspect, os
 
-# add this files directory to the path
-# such that JobGenerator module gets found!
+# set the directory of the module
 configuratorModuleDir = os.path.abspath(os.path.join(os.path.dirname(
                                     inspect.getfile(inspect.currentframe())
                                     )
                                   ))
+                                  
+#  set the module path for this module
+configuratorModulePath = os.path.abspath(os.path.join(configuratorModuleDir,".."))
 
-sys.path.append( os.path.abspath(os.path.join(configuratorModuleDir,"..")) )
+# set the path such that the configurator module gets found
+sys.path.append( configuratorModulePath )
 
 import jobGenerators as jg
 from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
@@ -115,7 +118,8 @@ def submitInternal(config):
     # add the modules path of this file, which can be used in the (.ini files)
     # and also the execDir of the submit.py
     config["General"] = {
-                         "modulePathConfigurator" : configuratorModuleDir,
+                         "configuratorModuleDir" : configuratorModuleDir,
+                         "configuratorModulePath" : configuratorModulePath,
                          "currentWorkDir" : os.getcwd(),
                          "jobDir" : os.path.dirname(os.path.abspath(config.Cluster.jobGeneratorConfig)),
                          "submitScriptArgs" : " ".join(sys.argv)

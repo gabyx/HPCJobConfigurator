@@ -138,7 +138,7 @@ def distributeFrames(opts,sortedFrames):
     
     if totalFrames == 0:
         print("No frames to render! -> exit")
-        return 0
+        return None
         
     nFramePerProc = int(totalFrames / opts.processes);
     frameCountPerProc = [nFramePerProc] * opts.processes;
@@ -430,6 +430,9 @@ def main():
         #count number of frames to render
         totalFrames = len(framesToDistribute);
         print("Number of frames to compute %i" % totalFrames)
+        if(totalFrames == 0):
+          print("No frames to distribute -> exit")
+          return 0
         
         # Distribute the processes over the number of processes ===============
         processFrames = distributeFrames(opts,framesToDistribute)

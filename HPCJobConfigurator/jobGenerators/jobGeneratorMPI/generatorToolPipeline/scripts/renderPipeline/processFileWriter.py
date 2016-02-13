@@ -44,10 +44,10 @@ class ConverterProcessFileWriter:
     
     def __init__(self,pipelineSpecs, jobGenModules):
       
-        self.cf = jobGenModules["commonFunctions"]
-        self.iH = jobGenModules["importHelpers"]
+      self.cf = jobGenModules["commonFunctions"]
+      self.iH = jobGenModules["importHelpers"]
         
-       self.pipelineSpecs = pipelineSpecs
+      self.pipelineSpecs = pipelineSpecs
     
     def write(self,processFrames, processFile):
          
@@ -81,6 +81,6 @@ class ConverterProcessFileWriter:
             tree = ET.ElementTree(root);
 
             f = open(processFile.format(procIdx),"w+")
-            f.write(cf.prettifyXML(root))
+            f.write(self.cf.prettifyXML(root))
             f.close()
         print("Wrote converter process files for all ranks")
