@@ -112,7 +112,7 @@ def main():
 
             for file in files:
                 
-                filePath = os.path.join(dirpath, file) 
+                filePath = os.path.realpath(os.path.join(dirpath, file)) 
                 # try to match path with all regexes till one matches:
                 for specIdx, specs in enumerate(fileValidationSpecs):
                     
