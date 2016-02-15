@@ -61,7 +61,7 @@ class ToolPipeline(GeneratorMPI):
             self.config["Job"]["jobIdx"] = str(jobIdx)
             
             self.config["Job"]["submitCommand"] = " ".join([self.config["Cluster"]["submitCommand"] , 
-                        (configDicts[-1].Cluster.submitArgsChainJob if jobIdx != 0 else "") , self.config["Job"]["submitArgs"]])
+                        (configDicts[-1].Cluster.submitArgsChainJob if jobIdx > self.cCluster.jobIdxParent else "") , self.config["Job"]["submitArgs"]])
             
 
 
