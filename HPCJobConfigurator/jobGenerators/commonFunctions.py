@@ -292,7 +292,7 @@ class CommonFunctions:
     jsonpickle.set_encoder_options(jsonBackend,compactly=False)
     
     def jsonDump(obj,file,*args,**kargs):
-        jsonpickle.set_encoder_options(jsonBackend,*args,**kargs)
+        jsonpickle.set_encoder_options(CommonFunctions.jsonBackend,*args,**kargs)
         file.write(jsonpickle.encode(obj))
         
     def jsonParse(s):
