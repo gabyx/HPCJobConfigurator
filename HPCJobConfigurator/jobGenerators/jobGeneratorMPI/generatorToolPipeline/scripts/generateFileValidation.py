@@ -61,7 +61,7 @@ def main():
     parser.add_argument("-s", "--searchDir", dest="searchDir",
             help="""This is the search directory where it is looked for render output files (.tiff,.exr,.rib.gz). """, metavar="<path>", required=True)
     
-    parser.add_argument("--pipelineSpecs", dest="pipelineSpecs", default="",
+    parser.add_argument("--pipelinespec", dest="pipelinespec", default="",
             help="""Json file with info about the pipeline, fileValidation, fileValidationTools.                 
                  """, metavar="<string>", required=True)
     
@@ -86,23 +86,23 @@ def main():
         
         
         opts= AttrMap(vars(parser.parse_args()))
-        
+        print("searchDir: %s" % opts.searchDir)
         print("validationInput: %s" % opts.validationFileInfo)
         print("validationOutput: %s" % opts.output)
         
         
-        d = cf.jsonLoad(opts.pipelineSpecs)
+        d = cf.jsonLoad(opts.pipelinespec)
         pipelineTools = d["pipelineTools"]
-        fileValidationSpecs = d["fileValidationSpecs"]
+        fileValidationspec = d["fileValidationspec"]
         fileValidationTools = d["fileValidationTools"]
         
         # compile all regexes
         regexes = {}
-        for i,specs in enumerate(fileValidationSpecs):
+        for i,spec in enumerate(fileValidationspec):
             try:
-                regexes[i] = re.compile(specs["regex"])
+                regexes[i] = re.compile(spec["regex"])
             except:
-                raise ValueError("Could not compile regex: %s" % specs["regex"])
+                raise ValueError("Could not compile regex: %s" % spec["regex"])
             
         allFiles = []
         allFilesHash = {} 
@@ -114,7 +114,7 @@ def main():
                 
                 filePath = os.path.join(dirpath, file) 
                 # try to match path with all regexes till one matches:
-                for specIdx, specs in enumerate(fileValidationSpecs):
+                for specIdx, spec in enumerate(fileValidationspec):
                     
                     m=regexes[specIdx].search(filePath)
                     
@@ -127,15 +127,15 @@ def main():
                             raise ValueError("Non convertable processId found in filePath %s" % filePath)  
                         
                         if processId not in filesPerProc:
-                            filesPerProc[processId] = {"all" : [] , "tool" : { tool:[] for tool in pipelineTools.keys() } };
+                            filesPerProc[processId] = {"allFiles" : [] , "tools" : { tool:[] for tool in pipelineTools.keys() } };
                         
                         #make dict for this file
                         f = {}
                         # add regex groups
                         f.update(m.groupdict())
 
-                        # add all values from d (deep copy since we want for each one a different)
-                        f.update(copy.deepcopy(specs))
+                        # add all values from the validation spec (deep copy since we want for each one a different)
+                        f.update(copy.deepcopy(spec))
                         
                         # set file status on finished, (as initial guess, validation fully determines this value)
                         f.update({"status":"finished"})                            
@@ -149,29 +149,29 @@ def main():
                             if tool not in pipelineTools.keys():
                                 raise ValueError("The tool %s is not in %s!" % (tool,str(pipelineTools.keys())) )
                         else:
-                            raise ValueError("You need to define a 'tool' key for %s " % str(specs))
+                            raise ValueError("You need to define a 'tool' key for %s " % str(spec))
                             
                         # make hashes
-                        if "hashString" in specs:
-                            h = cf.makeUUID( specs["hashString"].format(**m.groupdict()) )
+                        if "hashString" in spec:
+                            h = cf.makeUUID( spec["hashString"].format(**m.groupdict()) )
                             f["hash"] = h
                             if h not in allFilesHash:
                                 allFilesHash[h] = f
                             else:
                                 raise ValueError("Found files with the same hash %s, %s, this should not happen!" % (f["absPath"], allFilesHash[h]["absPath"] ) )
                         else:
-                            raise ValueError("You need to define a 'hash' key for file %s " % str(specs))
+                            raise ValueError("You need to define a 'hash' key for file %s " % str(spec))
                             
                             
                         # convert frameIdx
                         if "frameIdx" in f:
                              f["frameIdx"] = int(f["frameIdx"])
                         else:
-                             raise ValueError("You need to define a 'frameIdx' key for %s (or in regex!) " % str(specs))                            
+                             raise ValueError("You need to define a 'frameIdx' key for %s (or in regex!) " % str(spec))                            
                         
                         # add file to the lists
-                        filesPerProc[processId]["all"].append( f )
-                        filesPerProc[processId]["tool"][ tool ].append(f)
+                        filesPerProc[processId]["allFiles"].append( f )
+                        filesPerProc[processId]["tools"][ tool ].append(f)
                             
                         allFiles.append(f)
                         
@@ -183,19 +183,19 @@ def main():
          
         # sort files according to maximal modified time of the output files for each tool and each process
         for procId, procFiles in filesPerProc.items():
-            for tool,files in procFiles["tool"].items():
-                filesPerProc[procId]["tool"][tool] =  sorted( files , key= lambda file : os.path.getmtime(file["absPath"]) );
+            for tool,files in procFiles["tools"].items():
+                filesPerProc[procId]["tools"][tool] =  sorted( files , key= lambda file : os.path.getmtime(file["absPath"]) );
 
         #determine files to validate
         filesToValidate = []
         for procid, procFiles in filesPerProc.items():
                 if opts.validateOnlyLastModified:
                    # validate last file of all tools for each processor, to see if its ok or not, all others are valid
-                   for tool, toolFiles in procFiles["tool"].items():
+                   for tool, toolFiles in procFiles["tools"].items():
                        if toolFiles:
                            filesToValidate.append(toolFiles[-1])
                 else:
-                   filesToValidate += procFiles["all"]
+                   filesToValidate += procFiles["allFiles"]
         
           
         # Validate all files with the appropriate command
@@ -230,7 +230,7 @@ def main():
                 # file is invalid, clear this file from the list 
                 filesToValidate[fIdx]["status"] = "invalid";
         
-        print("Validated files: ", "\n".join([ f["absPath"] + " --> " + f["status"] for f in filesToValidate ]) ) 
+        print("Validated last files of each tool in the pipeline: ", "\n".join([ f["absPath"] + " --> " + f["status"] for f in filesToValidate ]) ) 
         
         
         # filter all empty stuff from lists:
