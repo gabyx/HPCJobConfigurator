@@ -68,12 +68,12 @@ function cleanup(){
         echo "$ES cleanup: ============================================="
     fi
     
+    exitFunction $1
 }
 
 function signalHandler() {
     echo "$ES Signal $1 catched, cleanup and exit."
-    cleanup
-    exitFunction 0
+    cleanup 0
 }
 
 yell() { echo "$0: $*" >&2; }
@@ -102,7 +102,7 @@ echo "$ES ======================================"
 # Run simulation
 echo "$ES Run MPI Task ========================="
 stage=2
-try $timeCmd -f"\n$ES Time Elapsed: %E" mpirun -np ${Cluster:nProcesses} ${TemplatesOut:processPerCore} 
+try $timeCmd -f"\n$ES Time Elapsed: %E" mpirun -np ${Cluster:nProcesses} ${TemplatesOut:processPerCore}
 echo "$ES ======================================"
 
 #Postprocess per node, move the directory to the work scratch

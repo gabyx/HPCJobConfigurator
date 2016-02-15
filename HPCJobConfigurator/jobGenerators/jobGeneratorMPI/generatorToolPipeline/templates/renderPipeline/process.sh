@@ -9,28 +9,33 @@
 # =====================================================================
 
 
+ES="process.sh:"
+
+# store initial stdout to 3
+exec 3>&1 
 
 yell() { echo "$0: $*" >&2; }
 die() { yell "$*"; cleanup ; exit 111 ; }
 try() { "$@" || die "Rank: ${Job:processIdxVariabel}: cannot $*"; }
 
-
+# trap echo gets redirected to initial stdout =  3
 function trap_with_arg() {
     func="$1" ; shift
     for sig ; do
-        trap "$func $sig" "$sig"
+        trap "$func $sig 1>&3" "$sig"
     done
 }
 
 function cleanup(){
-    echo "process.sh: Rank: ${Job:processIdxVariabel}: do cleanup!"
+    echo "$ES Rank: ${Job:processIdxVariabel}: do cleanup! ============="
     ${Pipeline:cleanUpCommand}
+    echo "$ES Rank: ${Job:processIdxVariabel}: cleanup finished ========"
+    exit $1
 }
 
 function handleSignal() {
-    echo "process.sh: Rank: ${Job:processIdxVariabel}: Signal $1 catched, cleanup and exit."
-    cleanup 
-    exit 0
+    echo "$ES Rank: ${Job:processIdxVariabel}: Signal $1 catched, cleanup and exit."
+    cleanup 0
 }
 
 # Setup the Trap
