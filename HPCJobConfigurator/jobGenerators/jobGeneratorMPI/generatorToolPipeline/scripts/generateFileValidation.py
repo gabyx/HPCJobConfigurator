@@ -273,7 +273,7 @@ def main():
         
                 
         f = open(opts.output,"w+")
-        cf.jsonDump(finalFiles,f,indent=4, sort_keys=True)
+        cf.jsonDump(finalFiles,f, sort_keys=True)
         f.close();
         
         # Renew status folder, move over new xml info
@@ -284,7 +284,7 @@ def main():
             
             cf.makeDirectory(finished,interact=False, defaultMakeEmpty=True)
             cf.makeDirectory(recover ,interact=False, defaultMakeEmpty=True)
-            # make symlinks for all files in the apropriate folder:
+            # make symlinks for all files in the appropriate folder:
             paths = {"recover": recover, "finished": finished}           
             
             for f in finalFiles:
