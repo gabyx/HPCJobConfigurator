@@ -64,7 +64,7 @@ class RigidBodySim(GeneratorMPI):
             self.config["Job"]["jobIdx"] = str(jobIdx)
             
             self.config["Job"]["submitCommand"] = " ".join([self.config["Cluster"]["submitCommand"] , 
-                        (configDicts[-1].Cluster.submitArgsChainJob if jobIdx != 0 else "") , self.config["Job"]["submitArgs"]])            
+                        (configDicts[-1].Cluster.submitArgsChainJob if jobIdx > self.cCluster.jobIdxParent+1 else "") , self.config["Job"]["submitArgs"]])            
             
             # define this jobs scene file path (it is not yet generated)
             filename , ext = os.path.splitext(os.path.basename(self.config["RigidBodySim"]["sceneFileTemplate"]))
@@ -110,7 +110,7 @@ class RigidBodySim(GeneratorMPI):
         filePath = os.path.join(config0.Job.scriptDir,"submitAll.sh")
         f = open(filePath,"w+")
         commands = [];        
-        for c in configDicts:
+        for c in configDicts[self.cCluster.jobIdxParent+2:]:
             if c:
                 commands.append(c.Job.submitCommand)
         

@@ -61,7 +61,7 @@ class ToolPipeline(GeneratorMPI):
             self.config["Job"]["jobIdx"] = str(jobIdx)
             
             self.config["Job"]["submitCommand"] = " ".join([self.config["Cluster"]["submitCommand"] , 
-                        (configDicts[-1].Cluster.submitArgsChainJob if jobIdx != 0 else "") , self.config["Job"]["submitArgs"]])
+                        (configDicts[-1].Cluster.submitArgsChainJob if jobIdx > self.cCluster.jobIdxParent+1 else "") , self.config["Job"]["submitArgs"]])
             
 
 
@@ -110,7 +110,7 @@ class ToolPipeline(GeneratorMPI):
         filePath = os.path.join(config0.Job.scriptDir,"submitAll.sh")
         f = open(filePath,"w+")
         commands = [];        
-        for c in configDicts:
+        for c in configDicts[self.cCluster.jobIdxParent+2:]:
             if c:
                 commands.append(c.Job.submitCommand)
         

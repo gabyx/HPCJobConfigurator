@@ -4,6 +4,6 @@
         "plotOptions"     : "--dashed --masked --colored"
     },
     "otherSettings" : {
-        "type" : "someotherstuff"
+        "type" : "awesome grid"
     }
 }
