@@ -110,7 +110,7 @@ class RigidBodySim(GeneratorMPI):
         filePath = os.path.join(config0.Job.scriptDir,"submitAll.sh")
         f = open(filePath,"w+")
         commands = [];        
-        for c in configDicts:
+        for c in configDicts[self.cCluster.jobIdxParent+2:]:
             if c:
                 commands.append(c.Job.submitCommand)
         
