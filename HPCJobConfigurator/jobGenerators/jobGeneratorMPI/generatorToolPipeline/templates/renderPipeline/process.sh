@@ -11,16 +11,19 @@
 
 ES="process.sh: Rank: ${Job:processIdxVariabel}:"
 
+executionDir=$(pwd)
+
 thisPID="$BASHPID"
 
 stage=0
 signalReceived="False"
 cleaningUp="False"
 
-
+# save stdout in file descriptor 4
+exec 4>&1
 
 function exitFunction(){
-    echo "Exiting $ES exit code: $1 (0=success), stage: ${stage}"
+    echo "Exiting $ES exit code: $1 (0=success), stage: ${stage}" 1>&4
     #if [[ ${signalReceived} == "True" ]]; then
       ## http://www.cons.org/cracauer/sigint.html
       ## kill ourself to signal calling process that we exited on signal
@@ -61,8 +64,8 @@ function cleanup(){
     fi
     
     echo "$ES do cleanup! =============" 
-    cd ${processDir}
     echo "Execute CleanUpCommand ${Pipeline:cleanUpCommand}"
+    cd ${executionDir}
     ${Pipeline:cleanUpCommand}
     if [[ ${stage} -eq 1 ]]; then
       executeFileValidation
@@ -117,7 +120,6 @@ tryNoCleanUp() { "$@" || die "$ES cannot $*" ;  }
 # Be aware that SIGINT and SIGTERM will be catched here, but if this script is run with mpirun
 # mpirun will forward SIGINT/SIGTERM and then quit, leaving this script still running in the signal handler
 trap_with_arg shutDownHandler SIGINT SIGUSR1 SIGUSR2 SIGTERM
-
 
 if [[ -z "${Job:processIdxVariabel}" ]]; then
     echo "Rank not defined! "

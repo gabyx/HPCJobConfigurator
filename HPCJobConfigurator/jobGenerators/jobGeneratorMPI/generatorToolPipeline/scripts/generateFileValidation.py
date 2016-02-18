@@ -69,7 +69,8 @@ def searchFiles(searchDir,opts,fileValidationSpecs,fileValidationTools,pipelineT
 
         for file in files:
             
-            filePath = os.path.realpath(os.path.join(dirpath, file)) 
+            filePath = os.path.realpath(os.path.join(dirpath, file))
+            print(os.path.join(dirpath, file))
             # try to match path with all regexes till one matches:
             for specIdx, spec in enumerate(fileValidationSpecs):
                 
@@ -312,7 +313,7 @@ def main():
         # add searchDir files to new set
         # search files ============================================================================
         if opts.searchDirNew is not None:
-            print("Validate all files in: %s with pipeLineSpecs: %s", (opts.searchDirNew , opts.pipelineSpecs) )
+            print("Validate all files in: %s with pipeLineSpecs: %s" % (opts.searchDirNew , opts.pipelineSpecs) )
             allFiles = searchFiles(opts.searchDirNew, opts, fileValidationSpecs,fileValidationTools,pipelineTools)
             for ha, f in allFiles.items():
               if ha in valDataAllNew:
