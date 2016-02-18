@@ -121,7 +121,7 @@ def makeDirectory(path,interact=True, name="Directory", defaultCreate=True, defa
        
      
      if not os.path.exists(path) :
-         print("%s : %s" % (name,path) + " does not exist!")
+         CE.printInfo("%s : %s" % (name,path) + " does not exist!")
          default = 'y' if defaultCreate else 'n'
          r=''
          if interact:
@@ -135,7 +135,7 @@ def makeDirectory(path,interact=True, name="Directory", defaultCreate=True, defa
              os.makedirs(path)
              CE.printInfo("Created %s : %s" %  (name,path))
      else:
-        print("%s : %s" % (name,path) + " does already exist!") 
+        CE.printWarning("%s : %s" % (name,path) + " does already exist!") 
         # dir exists
         default='y' if  defaultMakeEmpty else 'n'
         r=''

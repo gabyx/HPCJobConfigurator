@@ -60,7 +60,7 @@ def printKeyMessage(k,m):
 
 
 def doColoredOutput():
-  global MyNameError, MyValueError, printWarning, makeInfo, makeKeyMessage,makePrompt,makeHeader
+  global MyNameError, MyValueError, makeWarning, makeInfo, makeKeyMessage,makePrompt,makeHeader
   colorama.init()
   MyNameError  = TNameError
   MyValueError = TValueError
@@ -72,7 +72,7 @@ def doColoredOutput():
   makeHeader       = makeHeaderT
   
 def undoColoredOutput():
-  global MyNameError, MyValueError, printWarning, makeInfo, makeKeyMessage,makePrompt,makeHeader
+  global MyNameError, MyValueError, makeWarning, makeInfo, makeKeyMessage,makePrompt,makeHeader
   colorama.deinit()
   MyNameError  = NameError
   MyValueError = ValueError
