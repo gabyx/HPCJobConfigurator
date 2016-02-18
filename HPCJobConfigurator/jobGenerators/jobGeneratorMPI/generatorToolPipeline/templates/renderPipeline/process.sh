@@ -125,6 +125,9 @@ fi
 
 rm -fr "${Job:processDir}"
 tryNoCleanUp mkdir -p "${Job:processDir}"
+
+# Save processDir, it might be relative! and if signal handler runs 
+# using a relative path is not good
 cd "${Job:processDir}"
 processDir=$(pwd)
 
