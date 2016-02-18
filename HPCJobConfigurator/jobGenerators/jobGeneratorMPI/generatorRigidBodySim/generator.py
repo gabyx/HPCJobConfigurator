@@ -42,7 +42,7 @@ class RigidBodySim(GeneratorMPI):
     
     def printOptions(self):
         super(RigidBodySim,self).printOptions();
-        print("-> Scenefile: %s" % self.cRigidBody.sceneFile)
+        CE.printKeyMessage("Scenefile","%s" % self.cRigidBody.sceneFile)
         
     def generate(self):
 
@@ -54,8 +54,8 @@ class RigidBodySim(GeneratorMPI):
             raise CE.MyValueError("jobIdxParent=%i not feasible, since you generate %i jobs from idx 0 till %i !" % (self.cCluster.jobIdxParent,self.cCluster.nJobs, self.cCluster.nJobs-1) )
         for jobIdx in range(0,self.cCluster.nJobs):
             
-            print("Generating MPI Job: RigidBody Simulation =================")
-            print("-> JobIndex: %i" % jobIdx + (" (not files because parent job!)" if jobIdx <= self.cCluster.jobIdxParent else "") )
+            CE.printHeader("Generating MPI Job: RigidBody Simulation =================")
+            CE.printKeyMessage("JobIndex","%i" % jobIdx + (" (not files because parent job!)" if jobIdx <= self.cCluster.jobIdxParent else "") )
             
              # first make a new self.config
             self.config = self.makeInterpolationConfig();
@@ -103,7 +103,7 @@ class RigidBodySim(GeneratorMPI):
             # save conficDict for next jobIdx (possibly)
             configDicts.append(self.configDict)
             
-            print("==========================================================")
+            CE.printHeader("==========================================================")
         
         # Write total submit file to first folder 
         config0 = configDicts[self.cCluster.jobIdxParent+2];

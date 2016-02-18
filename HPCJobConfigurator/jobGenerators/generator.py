@@ -274,13 +274,13 @@ class Generator:
         
         
     def printOptions(self):
-        CE.printKeyValue("Submit command:",self.cCluster.submitCommand )
-        print( "-> Submit args chain jobs: %s" % self.cCluster.submitArgsChainJob )
-        print( "-> Run time:  %i min " % self.cCluster.runTime)
-        print( "-> Ram/Core size: %i mb" % self.cCluster.ramPerCore)
-        print( "-> Scratch/Core size: %i mb" % self.cCluster.localScratchPerCore)
-        print( "-> Number of processes: %i" % self.cCluster.nProcesses )
-        print( "-> Job output dir: %s" % self.cCluster.jobGeneratorOutputDir)
+        CE.printKeyMessage("Submit command:",self.cCluster.submitCommand )
+        CE.printKeyMessage("Submit args chain jobs","%s" % self.cCluster.submitArgsChainJob )
+        CE.printKeyMessage("Run time","%i min " % self.cCluster.runTime)
+        CE.printKeyMessage("Ram/Core size","%i mb" % self.cCluster.ramPerCore)
+        CE.printKeyMessage("Scratch/Core size","%i mb" % self.cCluster.localScratchPerCore)
+        CE.printKeyMessage("Number of processes","%i" % self.cCluster.nProcesses )
+        CE.printKeyMessage("Job output dir","%s" % self.cCluster.jobGeneratorOutputDir)
         
     def convertConfig(self,config):
         """Converts a ConfigParser config to a AttrDict"""

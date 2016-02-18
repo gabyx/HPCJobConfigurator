@@ -144,8 +144,7 @@ def submitInternal(config):
 
 if __name__ == "__main__":
    # initialize terminal colors
-   colorama.init()
-   CE.setColoredOutput()
+   CE.doColoredOutput()
    err=submit()
-   colorama.deinit()
+   CE.undoColoredOutput()
    sys.exit(err);

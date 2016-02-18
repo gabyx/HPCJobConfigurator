@@ -13,6 +13,7 @@ import os
 from HPCJobConfigurator.jobGenerators import importHelpers as iH
 from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 from HPCJobConfigurator.jobGenerators.generator import Generator
+from HPCJobConfigurator.jobGenerators import configuratorExceptions as CE
 
 
 
@@ -47,8 +48,8 @@ class GeneratorSimple(Generator):
             raise ValueError("jobIdxParent=%i not feasible, since you generate %i jobs from idx 0 till %i !" % (self.cCluster.jobIdxParent,self.cCluster.nJobs, self.cCluster.nJobs-1) )
         for jobIdx in range(0,self.cCluster.nJobs):
             
-            print("Generating Simple Job: ====================================")
-            print("-> JobIndex: %i" % jobIdx + (" (not files because parent job!)" if jobIdx <= self.cCluster.jobIdxParent else "") )
+            CE.printHeader("Generating Simple Job: ====================================")
+            CE.printKeyMessage("JobIndex","%i" % jobIdx + (" (not files because parent job!)" if jobIdx <= self.cCluster.jobIdxParent else "") )
             
             # first make a new self.config
             self.config = self.makeInterpolationConfig();
@@ -79,5 +80,5 @@ class GeneratorSimple(Generator):
             # save conficDict for next jobIdx (possibly)
             configDicts.append(self.configDict)
             
-            print("==========================================================")
+            CE.printHeader("==========================================================")
         

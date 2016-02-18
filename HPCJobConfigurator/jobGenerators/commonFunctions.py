@@ -106,14 +106,14 @@ def makeLinks(fileGlobPattern, filePathRegex, subTemplate, outputFolder,
 
         simLinkFile = newf.format(*tu[3:]);
         simLinkPath = os.path.join(outputFolder,simLinkFile) 
-        print("Link: " + f + " --- to ---> " + simLinkPath)
+        CE.printInfo("Link: " + f + " --- to ---> " + simLinkPath)
         try:
             if hardLink:
                 os.link(os.path.abspath(f), simLinkPath );
             else:
                 os.symlink(os.path.abspath(f), simLinkPath );
         except FileExistsError:
-            print("file exists, continue")
+            CE.printInfo("file exists, continue")
     
 
 
@@ -125,7 +125,7 @@ def makeDirectory(path,interact=True, name="Directory", defaultCreate=True, defa
          default = 'y' if defaultCreate else 'n'
          r=''
          if interact:
-             r = input("Do you want to create directory [y|n, default(%s)]: " % default).strip()
+             r = input(CE.makePrompt("Do you want to create directory [y|n, default(%s)]: " % default)).strip()
         
          r = r or default
          
@@ -133,20 +133,20 @@ def makeDirectory(path,interact=True, name="Directory", defaultCreate=True, defa
              raise CE.MyValueError("Aborted due to not created directory!")
          else:
              os.makedirs(path)
-             print("Created %s : %s" %  (name,path))
+             CE.printInfo("Created %s : %s" %  (name,path))
      else:
         print("%s : %s" % (name,path) + " does already exist!") 
         # dir exists
         default='y' if  defaultMakeEmpty else 'n'
         r=''
         if interact:
-            r = input("Do you want to remove and recreate the directory [y|n, default(%s)]: " % default ).strip()
+            r = input(CE.makePrompt("Do you want to remove and recreate the directory [y|n, default(%s)]: " % default) ).strip()
         
         r = r or default
         if r == 'y':
              shutil.rmtree(path)
              os.makedirs(path)
-             print("Removed and created %s : %s" %  (name,path))
+             CE.printInfo("Removed and created %s : %s" %  (name,path))
 
 
 def checkNotExisting(path, interact=True, name="Directory"):
@@ -154,7 +154,7 @@ def checkNotExisting(path, interact=True, name="Directory"):
          mess = "%s : %s" % (name,path) + " does already exist!"
          if interact :
             print(mess)
-            r = input("Do you want to remove the directory: [y|n|c, default(c), c=no and continue]").strip()
+            r = input(CE.makePrompt("Do you want to remove the directory: [y|n|c, default(c), c=no and continue]")).strip()
             if not r:
                 r="c"
             if r == 'n':

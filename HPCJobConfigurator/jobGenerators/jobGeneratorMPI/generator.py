@@ -136,8 +136,8 @@ class GeneratorMPI(Generator):
         
     def printOptions(self):
         super(GeneratorMPI,self).printOptions()
-        print( "-> Local Dir: %s" % self.cJob.localDir )
-        print( "-> Global Dir: %s" % self.cJob.globalDir )
-        print("-> Executable command: %s" % self.cJob.executableCommand)
+        CE.printKeyMessage("Local Dir","%s" % self.cJob.localDir )
+        CE.printKeyMessage("Global Dir","%s" % self.cJob.globalDir )
+        CE.printKeyMessage("Executable command","%s" % self.cJob.executableCommand)
         
 

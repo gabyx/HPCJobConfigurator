@@ -51,8 +51,8 @@ class ToolPipeline(GeneratorMPI):
             raise CE.MyValueError("jobIdxParent=%i not feasible, since you generate %i jobs from idx 0 till %i !" % (self.cCluster.jobIdxParent,self.cCluster.nJobs, self.cCluster.nJobs-1) )
         for jobIdx in range(0,self.cCluster.nJobs):
             
-            print("Generating MPI Job: Simulation Render =================")
-            print("-> JobIndex: %i" % jobIdx + (" (no generating, because parent job!)" if jobIdx <= self.cCluster.jobIdxParent else "") )
+            CE.printHeader("Generating MPI Job: Tool Pipeline ========================")
+            CE.printKeyMessage("JobIndex","%i" % jobIdx + (" (no generating, because parent job!)" if jobIdx <= self.cCluster.jobIdxParent else "") )
             
             # first make a new self.config
             self.config = self.makeInterpolationConfig();
@@ -102,7 +102,7 @@ class ToolPipeline(GeneratorMPI):
             # TODO save config dict in job script folder (json file)            
             configDicts.append(self.configDict)
             
-            print("==========================================================")
+            CE.printHeader("==========================================================")
         
         
         # Write total submit file to first folder 
