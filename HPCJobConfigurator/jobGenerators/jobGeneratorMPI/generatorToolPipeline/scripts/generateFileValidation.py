@@ -314,7 +314,6 @@ def main():
         if opts.searchDirNew is not None:
             print("Validate all files in: %s with pipeLineSpecs: %s", (opts.searchDirNew , opts.pipelineSpecs) )
             allFiles = searchFiles(opts.searchDirNew, opts, fileValidationSpecs,fileValidationTools,pipelineTools)
-            print(allFiles)
             for ha, f in allFiles.items():
               if ha in valDataAllNew:
                   print("""WARNING: File %s already found in validation data set 

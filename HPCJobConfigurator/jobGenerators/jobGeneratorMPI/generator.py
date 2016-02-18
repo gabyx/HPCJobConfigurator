@@ -68,9 +68,14 @@ class GeneratorMPI(Generator):
         # local and global dir to absolut paths!
         # important, because its more safe!
         self.interpolation.setSkipping(False)  # turn interpolation on
-        self.config["Job"]["localDir"]  = os.path.abspath(cf.expandEnvVar(self.config["Job"]["localDir"],self.envRegexPattern, errorIfNotFullyExpanded=False))
-        # allow in localDir that not yet defined 
-        self.config["Job"]["globalDir"] = os.path.abspath(cf.expandEnvVar(self.config["Job"]["globalDir"],self.envRegexPattern, errorIfNotFullyExpanded=True))
+        
+        self.config["Job"]["localDir"]  = cf.expandEnvVar(self.config["Job"]["localDir"],self.envRegexPattern, errorIfNotFullyExpanded=False)
+        # allow Job:localDir to contain '$VAR' variables, are expanded by shell
+        
+        self.config["Job"]["globalDir"] = cf.expandEnvVar(self.config["Job"]["globalDir"],self.envRegexPattern, errorIfNotFullyExpanded=True)
+        if not os.path.isabs(self.config["Job"]["globalDir"]):
+          raise ValueError("You need to provide an absolute path for Job:globalDir")
+        
         # convert and interpolate all values in base class
         super(GeneratorMPI,self).convertValues();         
         
