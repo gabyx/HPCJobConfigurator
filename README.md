@@ -130,7 +130,8 @@ to be continued
 ## JobGeneratorMPI
   
   Important stuff to be documented:
-  - localDir might only become a valid absolut path if fully expanded by Bash on a cluster (might contain Job specific variable such as $TMPDIR )
+  - ${Job:localDir} might only become a valid absolut path if fully expanded by Bash on a cluster (might contain Job specific variable such as $TMPDIR which are not clear at configuration time)
+    ${Job:localDir} 
     therefore do not store this value in configuration files which are not Bash scripts! If you need localDir hand it to your executable and deal with it.
     
 
