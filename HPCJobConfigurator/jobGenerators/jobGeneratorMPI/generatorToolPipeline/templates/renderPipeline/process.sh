@@ -62,8 +62,9 @@ function cleanup(){
     
     echo "$ES do cleanup! =============" 
     cd ${processDir}
+    echo "Execute CleanUpCommand ${Pipeline:cleanUpCommand}"
     ${Pipeline:cleanUpCommand}
-    if [[ ${stage} -eq 2 ]]; then
+    if [[ ${stage} -eq 1 ]]; then
       executeFileValidation
       echo "$ES fileValidation exitStatus: $?"
     fi
