@@ -59,10 +59,10 @@ executeFilevalidationAll(){
 }
 
 # combine FileInfos
-# try executeFilevalidation
+try executeFilevalidation
 
 # manually validate all files (use this function if executeFilevalidation failed)
-try executeFilevalidationAll
+#try executeFilevalidationAll
 
 
 
