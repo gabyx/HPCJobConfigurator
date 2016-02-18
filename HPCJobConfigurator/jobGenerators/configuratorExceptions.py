@@ -15,7 +15,7 @@ def makeWarningT(m):
   return Fore.RED + Back.BLACK + Style.BRIGHT + m + Style.RESET_ALL
   
 def makeInfoT(m):
-  return Fore.GREEN + Back.BLACK + Style.BRIGHT + m + Style.RESET_ALL
+  return  m
   
 def makeHeaderT(m):
   return Style.BRIGHT + m + Style.RESET_ALL
