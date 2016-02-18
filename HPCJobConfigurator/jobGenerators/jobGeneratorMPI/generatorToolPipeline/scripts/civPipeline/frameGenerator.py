@@ -13,7 +13,7 @@ class FrameGenerator:
     
     def __init__(self,pipelineSpecs, jobGenModules):
       
-        self.cf = jobGenModules["commonFunctions"]
+        self.cF = jobGenModules["commonFunctions"]
         self.iH = jobGenModules["importHelpers"]
         self.gSFI = jobGenModules["getSimFileInfos"]
         

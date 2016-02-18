@@ -14,10 +14,10 @@ from attrdict import AttrMap
 import configparser
 from configparser import ConfigParser, ExtendedInterpolation
 
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 from HPCJobConfigurator.jobGenerators.dictionaryAdjuster import DictionaryAdjuster
-
+from HPCJobConfigurator.jobGenerators import configuratorExceptions as CE
 
 class MyConfigParser(ConfigParser):
     
@@ -202,7 +202,7 @@ class Generator:
         self.configDict = None
         
         # make default dictionary adjuster for default template specifiations
-        d = DictionaryAdjuster({"commonFunctions":cf,"importHelpers":iH})
+        d = DictionaryAdjuster({"commonFunctions":cF,"importHelpers":iH})
         self.templateConfigurators[self.makeConfiguratorHash("dictionaryAdjuster","DictionaryAdjuster")] = d
         self.defaultTemplateConfigurator = d
         
@@ -267,14 +267,14 @@ class Generator:
         self.cCluster.nProcesses = int(self.cCluster.nProcesses)
         self.cCluster.nJobs = int(self.cCluster.nJobs)
         self.cCluster.jobIdxParent = int(self.cCluster.jobIdxParent)
-        self.cCluster.verbose = cf.toBool(self.cCluster.verbose,"verbose")
-        self.cCluster.interact = cf.toBool(self.cCluster.interact,"interact")
-        self.cCluster.submitJobs = cf.toBool(self.cCluster.submitJobs,"submitJobs")
+        self.cCluster.verbose = cF.toBool(self.cCluster.verbose,"verbose")
+        self.cCluster.interact = cF.toBool(self.cCluster.interact,"interact")
+        self.cCluster.submitJobs = cF.toBool(self.cCluster.submitJobs,"submitJobs")
         
         
         
     def printOptions(self):
-        print( "-> Submit command: %s" % self.cCluster.submitCommand )
+        CE.printKeyValue("Submit command:",self.cCluster.submitCommand )
         print( "-> Submit args chain jobs: %s" % self.cCluster.submitArgsChainJob )
         print( "-> Run time:  %i min " % self.cCluster.runTime)
         print( "-> Ram/Core size: %i mb" % self.cCluster.ramPerCore)
@@ -291,7 +291,7 @@ class Generator:
         # Check all values
 
 
-        cf.makeDirectory(self.cCluster.jobGeneratorOutputDir, interact=False, name="Job output dir")
+        cF.makeDirectory(self.cCluster.jobGeneratorOutputDir, interact=False, name="Job output dir")
         self.cCluster.jobGeneratorOutputDir = os.path.abspath(self.cCluster.jobGeneratorOutputDir);
             
         if not path.exists(self.cCluster.jobGeneratorConfig):
@@ -316,7 +316,7 @@ class Generator:
     def expandEnvVars(self,dic):
         """Expands all environment variables in the dictionary dic"""
         for key,value in dic.items():
-            dic[key] = cf.expandEnvVar(value,self.envRegexPattern);
+            dic[key] = cF.expandEnvVar(value,self.envRegexPattern);
         return dic
     
     def updateNonInterpolatedOpts(self,nonInpOpts, nonInterpolatedOpts):
@@ -345,7 +345,7 @@ class Generator:
             configurator = None
             
             if templ and templ[0] == "{":
-                templ = cf.jsonParse(templ)
+                templ = cF.jsonParse(templ)
                 
                 settings = {}
                 if "settings" in templ:
@@ -361,7 +361,7 @@ class Generator:
                     
                     print("Instantiate configurator: " , configurator )
                     moduleType, classType = iH.importClassFromModule(**configurator)
-                    self.templateConfigurators[configuratorHash] = classType({"commonFunctions":cf,"importHelpers":iH}) # make instance (hand over modules)
+                    self.templateConfigurators[configuratorHash] = classType({"commonFunctions":cF,"importHelpers":iH}) # make instance (hand over modules)
 
                 configuratorFunc = self.templateConfigurators[configuratorHash];
                 

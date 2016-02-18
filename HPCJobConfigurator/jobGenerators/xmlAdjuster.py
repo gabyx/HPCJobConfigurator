@@ -19,7 +19,7 @@ from lxml import objectify
 class XmlAdjuster:
     
     def __init__(self,jobGenModules):
-        self.cf = jobGenModules["commonFunctions"]
+        self.cF = jobGenModules["commonFunctions"]
         self.iH = jobGenModules["importHelpers"]
     
     def __call__(self, generator, inputFile, outputFile, configDict, lastConfigDicts, **kwargs):

@@ -9,65 +9,63 @@
 
 import importlib
 
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 
-class ImportHelpers:
+def importClassFromModule(moduleName, className, modulePath=None):
     
-    def importClassFromModule(moduleName, className, modulePath=None):
-        
-        if modulePath :
-            loader = importlib.machinery.SourceFileLoader(moduleName, path=modulePath)
-            mod = loader.load_module()
-        else: 
-            # no path given, try normal import
-            try:
-              mod = __import__(moduleName)
-            except:
-              raise ValueError("No module with name %s found!" % moduleName) 
-        # get class
-        components = moduleName.split('.')
+    if modulePath :
+        loader = importlib.machinery.SourceFileLoader(moduleName, path=modulePath)
+        mod = loader.load_module()
+    else: 
+        # no path given, try normal import
         try:
-            for comp in components[1:]:
-                mod = getattr(mod, comp)
-            return mod, getattr(mod,className)
-            
-        except AttributeError as e:
-            print("Module: %s with type: %s " % (str(mod),type(mod)) )
-            raise e
+          mod = __import__(moduleName)
+        except:
+          raise ValueError("No module with name %s found!" % moduleName) 
+    # get class
+    components = moduleName.split('.')
+    try:
+        for comp in components[1:]:
+            mod = getattr(mod, comp)
+        return mod, getattr(mod,className)
         
+    except AttributeError as e:
+        print("Module: %s with type: %s " % (str(mod),type(mod)) )
+        raise e
     
-    def importClassFromModuleString(s, verbose=False):
+
+def importClassFromModuleString(s, verbose=False):
+    
+    if isinstance(s,str):
+        s = s.strip()
         
-        if isinstance(s,str):
-            s = s.strip()
-            
-            if(s[0] == "{"):
-                # json string
-                s = cf.jsonParse(s)
-                if verbose:
-                    print("Load class: %s in module: %s" % (s["className"],s["moduleName"]) ) 
-                return ImportHelpers.importClassFromModule(**s)
-            
-            # normal string e.g.: JobGenerator.jobGenerators.jobGeneratorMPI.RigidBodySim 
-            comps = s.split(".")
-            clName =  comps[-1]
-            mdName = ".".join(comps[0:-1])
-            
+        if(s[0] == "{"):
+            # json string
+            s = cF.jsonParse(s)
             if verbose:
-              print("Load class: %s in module: %s" % (clName,mdName) ) 
-              
-            return ImportHelpers.importClassFromModule(moduleName=mdName,className=clName)
-            
-        elif isinstance(s,dict):
-            
-            if verbose:
-              print("Load class: %s in module: %s" % (s["className"],s["moduleName"]) ) 
-              
+                print("Load class: %s in module: %s" % (s["className"],s["moduleName"]) ) 
             return ImportHelpers.importClassFromModule(**s)
-            
-        else:
-          raise NameError("Could no load module by string: %s" % s)
+        
+        # normal string e.g.: JobGenerator.jobGenerators.jobGeneratorMPI.RigidBodySim 
+        comps = s.split(".")
+        clName =  comps[-1]
+        mdName = ".".join(comps[0:-1])
+        
+        if verbose:
+          print("Load class: %s in module: %s" % (clName,mdName) ) 
           
-    
+        return importClassFromModule(moduleName=mdName,className=clName)
+        
+    elif isinstance(s,dict):
+        
+        if verbose:
+          print("Load class: %s in module: %s" % (s["className"],s["moduleName"]) ) 
+          
+        return importClassFromModule(**s)
+        
+    else:
+      raise NameError("Could no load module by string: %s" % s)
+      
+
     
     

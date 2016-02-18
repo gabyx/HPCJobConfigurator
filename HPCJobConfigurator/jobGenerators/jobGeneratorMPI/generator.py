@@ -18,9 +18,9 @@ from configparser import ConfigParser, ExtendedInterpolation
 
 
 from HPCJobConfigurator.jobGenerators.generator import Generator
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
-
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
+from HPCJobConfigurator.jobGenerators import configuratorExceptions as CE
 
 class GeneratorMPI(Generator):
     
@@ -69,12 +69,13 @@ class GeneratorMPI(Generator):
         # important, because its more safe!
         self.interpolation.setSkipping(False)  # turn interpolation on
         
-        self.config["Job"]["localDir"]  = cf.expandEnvVar(self.config["Job"]["localDir"],self.envRegexPattern, errorIfNotFullyExpanded=False)
+        self.config["Job"]["localDir"]  = cF.expandEnvVar(self.config["Job"]["localDir"],self.envRegexPattern, errorIfNotFullyExpanded=False)
         # allow Job:localDir to contain '$VAR' variables, are expanded by shell
+        if "$" in self.config["Job"]["localDir"]:
+            CE.printWarning("Your Job:localDir: %s contains '$' character, which are only expanded in Bash!" % self.config["Job"]["localDir"])
         
-        self.config["Job"]["globalDir"] = cf.expandEnvVar(self.config["Job"]["globalDir"],self.envRegexPattern, errorIfNotFullyExpanded=True)
-        if not os.path.isabs(self.config["Job"]["globalDir"]):
-          raise ValueError("You need to provide an absolute path for Job:globalDir")
+        self.config["Job"]["globalDir"] = os.path.abspath(cF.expandEnvVar(self.config["Job"]["globalDir"],self.envRegexPattern, errorIfNotFullyExpanded=True))
+        # Job:globalDir is made absolute to execution dir when configuring
         
         # convert and interpolate all values in base class
         super(GeneratorMPI,self).convertValues();         
@@ -95,20 +96,20 @@ class GeneratorMPI(Generator):
         # expand global and local dirs
         
         if not path.exists(self.cTemplates.startJob):
-            raise ValueError("Start Script template %s does not exist!" % self.cTemplates.startJob)        
+            raise CE.MyValueError("Start Script template %s does not exist!" % self.cTemplates.startJob)        
         if not path.exists(self.cTemplates.preProcessPerNode):
-            raise ValueError("Start Script template %s does not exist!" % self.cTemplates.preProcessPerNode)        
+            raise CE.MyValueError("Start Script template %s does not exist!" % self.cTemplates.preProcessPerNode)        
         if not path.exists(self.cTemplates.processPerCore):
-            raise ValueError("Start Script template %s does not exist!" % self.cTemplates.processPerCore)        
+            raise CE.MyValueError("Start Script template %s does not exist!" % self.cTemplates.processPerCore)        
         if not path.exists(self.cTemplates.postProcessPerNode):
-            raise ValueError("Start Script template %s does not exist!" % self.cTemplates.postProcessPerNode)        
+            raise CE.MyValueError("Start Script template %s does not exist!" % self.cTemplates.postProcessPerNode)        
         if not path.exists(self.cTemplates.endJob):
-            raise ValueError("Start Script template %s does not exist!" % self.cTemplates.endJob)        
+            raise CE.MyValueError("Start Script template %s does not exist!" % self.cTemplates.endJob)        
             
         if self.cJob.copyLocation and not path.exists(self.cJob.copyLocation):
-            raise ValueError("Copy location %s does not exist!" % self.cJob.copyLocation)       
+            raise CE.MyValueError("Copy location %s does not exist!" % self.cJob.copyLocation)       
         
-        cf.checkNotExisting(self.cJob.globalDir,interact=interact,name="Global dir")
+        cF.checkNotExisting(self.cJob.globalDir,interact=interact,name="Global dir")
         
         # add no tar command if not tarCommandToGlobalDir is not specified
         if "tarCommandToGlobalDir" not in self.cJob:
@@ -116,17 +117,17 @@ class GeneratorMPI(Generator):
         
         
         if "pathChecker" in self.cJob:
-            pathChecker = cf.jsonParse(self.cJob.pathChecker)
-            pathChecker = cf.flatten(pathChecker)
+            pathChecker = cF.jsonParse(self.cJob.pathChecker)
+            pathChecker = cF.flatten(pathChecker)
             for s in pathChecker:
                 if not os.path.exists(s) or not os.path.lexists(s):
-                     raise ValueError("file: %s does not exist!" % s)
+                     raise CE.MyValueError("file: %s does not exist!" % s)
             
         # check executbles with which and return correct path
         if "executableChecker" in self.cJob:
-            execCheck = cf.jsonParse(self.cJob.executableChecker)
+            execCheck = cF.jsonParse(self.cJob.executableChecker)
             for varAccess,ex in execCheck:
-                exec("self.configDict"+varAccess +"= cf.checkExecutable(ex)")
+                exec("self.configDict"+varAccess +"= cF.checkExecutable(ex)")
         
         
     def generate(self):

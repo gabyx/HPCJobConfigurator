@@ -42,7 +42,7 @@ class AccivImageConverter:
         self.cS = self.pS.converterSettings
         self.fr = self.processFile.frames
         
-        self.cf = jobGenModules["commonFunctions"]
+        self.cF = jobGenModules["commonFunctions"]
     
     def loadImage(self,f):
       # average over all colors (as_gray = True, does something else, linear transform)
@@ -55,7 +55,7 @@ class AccivImageConverter:
         
         # load experiment settings
         
-        self.allExpSet = AttrMap(self.cf.jsonLoad(self.cS.experimentSettingsFile))
+        self.allExpSet = AttrMap(self.cF.jsonLoad(self.cS.experimentSettingsFile))
         ex = "%i" % self.cS.experimentNumber
         if ex not in self.allExpSet["experiments"]:
             raise ValueError("Experiment number %i not found in %s" % (self.cS.experimentNumber, self.cS.experimentSettingsFile))
@@ -67,7 +67,7 @@ class AccivImageConverter:
         
         # load intensity shift values if we have a numpy .npz file
         try:
-          l=self.cf.jsonLoad(self.cS.intensityShift)
+          l=self.cF.jsonLoad(self.cS.intensityShift)
           self.intensityShift = dict(l)
           print("Loaded  %i intensity shift values" % len(self.intensityShift) )
         except:

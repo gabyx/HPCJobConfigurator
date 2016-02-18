@@ -26,7 +26,7 @@ import xml.etree.ElementTree as ET
 from argparse import ArgumentParser
 from attrdict import AttrMap
 
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 
 class MyOptParser(ArgumentParser):
     def error(self,msg):
@@ -47,7 +47,7 @@ def main():
         print("========================= Move Files ===========================")
         
         if opts.processFile:
-            tasks = cf.jsonLoad(opts.processFile);
+            tasks = cF.jsonLoad(opts.processFile);
             for task in tasks:
                 try:
                     

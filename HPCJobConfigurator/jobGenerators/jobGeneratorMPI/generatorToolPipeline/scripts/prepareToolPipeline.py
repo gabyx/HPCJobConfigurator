@@ -25,8 +25,8 @@ import itertools
 from argparse import ArgumentParser
 from attrdict import AttrMap
 
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 from HPCJobConfigurator.jobGenerators.stringExpression import Expression as StrExpr
 
 from . import getSimFileInfos 
@@ -125,7 +125,7 @@ def writeFileMoverProcessFile(pipelineSpecs,processFrames):
         for fr in fList:
              for m in fr["fileMover"]:
                  c.append(m)
-        cf.jsonDump(c,o,indent=4)
+        cF.jsonDump(c,o,indent=4)
         o.close()
         
     
@@ -251,7 +251,7 @@ def recoverFrames(opts,allFrames,framesPerIdx, pipelineTools):
     if opts.validationFileInfo:
         print("Setup recovery from file info===============================")
         print("Checkpoint files: %s", opts.validationFileInfo)
-        checkpointFiles = cf.jsonLoad(opts.validationFileInfo);
+        checkpointFiles = cF.jsonLoad(opts.validationFileInfo);
         
         cpFiles = { "hash": {}, "all" : []}
         
@@ -282,7 +282,7 @@ def recoverFrames(opts,allFrames,framesPerIdx, pipelineTools):
                 finishedOutFiles = 0
                 for outFileProp in tool["outputFiles"]:
 
-                    ha =  cf.makeUUID(outFileProp["hashString"])
+                    ha =  cF.makeUUID(outFileProp["hashString"])
                     
                     
                     outFileProp["hash"] = ha
@@ -373,7 +373,7 @@ def main():
         
         opts= AttrMap(vars(parser.parse_args()))
         
-        pipelineSpecs = cf.jsonLoad(opts.pipelineSpecs)
+        pipelineSpecs = cF.jsonLoad(opts.pipelineSpecs)
         
 
         pipelineTools = pipelineSpecs["pipelineTools"]
@@ -396,7 +396,7 @@ def main():
 #        fileValidationTools = d["fileValidationTools"]
         
         # Important job modules to hand over to frameGenerators and processFileWriters
-        importantModules = {"importHelpers":iH, "commonFunctions" : cf, "getSimFileInfos" : getSimFileInfos}
+        importantModules = {"importHelpers":iH, "commonFunctions" : cF, "getSimFileInfos" : getSimFileInfos}
         
         # Generate Frames =====================================================
         mod, frameGenerator["generator"] = iH.importClassFromModuleString(frameGenerator["generator"])
@@ -409,7 +409,7 @@ def main():
         # Formatting frames ========================================================
         # format strings in all settings (if possible) in allFrames again with itself     
         for i,fr in enumerate(allFrames):
-            allFrames[i] = cf.formatAll(fr,fr,formatter=StrExpr)
+            allFrames[i] = cF.formatAll(fr,fr,formatter=StrExpr)
         
         # Filter Frames =======================================================
         recoverFrames(opts,allFrames,framesPerIdx,pipelineTools)

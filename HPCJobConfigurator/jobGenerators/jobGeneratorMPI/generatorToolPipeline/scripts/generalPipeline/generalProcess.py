@@ -12,8 +12,8 @@ import os,sys,traceback,signal
 from attrdict import AttrMap
 from argparse import ArgumentParser
 
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 
 class MyOptParser(ArgumentParser):
     def error(self,msg):
@@ -33,12 +33,12 @@ def main():
           
         if(opts.processFile):
             
-            processFile = cf.jsonLoad(opts.processFile);
+            processFile = cF.jsonLoad(opts.processFile);
 
             # load process module/class
             mod, ProcessClass = iH.importClassFromModule( **processFile["processClass"] )
 
-            process = ProcessClass( processFile, jobGenModules = {"importHelpers":iH, "commonFunctions" : cf} )
+            process = ProcessClass( processFile, jobGenModules = {"importHelpers":iH, "commonFunctions" : cF} )
             process.doProcessing()
            
         return 0

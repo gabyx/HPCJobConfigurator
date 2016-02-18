@@ -46,7 +46,7 @@ class DictionaryAdjuster:
         
     
     def __init__(self,jobGenModules):
-        self.cf = jobGenModules["commonFunctions"]
+        self.cF = jobGenModules["commonFunctions"]
         self.iH = jobGenModules["importHelpers"]
         
         self.currentConfigDictId = None
@@ -79,7 +79,7 @@ class DictionaryAdjuster:
 
           # load file as json and  add it under the key: parentName if defined
           try:
-            d = self.cf.jsonLoad(fileSpec["path"])
+            d = self.cF.jsonLoad(fileSpec["path"])
           except Exception as e:
             print("Error in json parsing of file %s" % fileSpec["path"])
             raise e  
@@ -102,7 +102,7 @@ class DictionaryAdjuster:
           convert = True   
           
         if convert:
-          self.replacementDict = self.cf.flattenDict(configDict,formatter=self.stringFormatter)
+          self.replacementDict = self.cF.flattenDict(configDict,formatter=self.stringFormatter)
         
         if(verbose):
            print("Replacement dictionary for file %s:" % inputFile)
@@ -131,5 +131,5 @@ class DictionaryAdjuster:
         self.writeTemplateStr(filein.read(),substDict , outputFile)
         
         if makeExecutable :
-          self.cf.makeExecutable( outputFile )
+          self.cF.makeExecutable( outputFile )
         

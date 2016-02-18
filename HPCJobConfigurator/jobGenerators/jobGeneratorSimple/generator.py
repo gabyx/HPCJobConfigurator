@@ -10,8 +10,8 @@
 import os
 
 
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 from HPCJobConfigurator.jobGenerators.generator import Generator
 
 
@@ -69,7 +69,7 @@ class GeneratorSimple(Generator):
                 self.printOptions()
 
                 # make job script dir (if exists, try to remove it, if no -> abort)
-                cf.makeDirectory( self.cJob.scriptDir, name="Job script dir", defaultMakeEmpty=False, interact= self.cCluster.interact)
+                cF.makeDirectory( self.cJob.scriptDir, name="Job script dir", defaultMakeEmpty=False, interact= self.cCluster.interact)
                 self.writeJobScriptArgs( os.path.join(self.cJob.scriptDir, "submitScriptArgs.txt" ) )
                 
                 

@@ -27,7 +27,7 @@ class AdjusterContinue(DictionaryAdjuster) :
             and then interpolates all remaining options still in the xml with the replacementDict which contains
             the same options as the configDict , the configDict type is just nicer to access, e.g {"sec1" : {"opt1" : 1} , "sec2" : {"opt1" : 1}} 
         """
-        replacementDict = self.cf.flattenDict(configDict);
+        replacementDict = self.cF.flattenDict(configDict);
         
         if not configDict.Cluster.submitArgsChainJob :
             raise ValueError("You try to succesively continue the rigidbody simulation but ${Cluster:submitArgsChainJob} is empty! Is that correct?")

@@ -22,8 +22,8 @@ from argparse import ArgumentParser
 from attrdict import AttrMap
 import xml.etree.ElementTree as ET
 
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 
 
 
@@ -44,7 +44,7 @@ def validateFile(validationCommands,fileList):
         if ext in validationCommand:
             command += validationCommand[ext] + " %s" % f
             try:
-                cf.callProcess(command)
+                cF.callProcess(command)
                 valid.append(True)
             except subprocess.CalledProcessError: 
                 valid.append(False)
@@ -98,7 +98,7 @@ def searchFiles(searchDir,opts,fileValidationSpecs,fileValidationTools,pipelineT
                     f.update({"status":"finished"})                            
                     
                     # format all values again with the regex results
-                    f = cf.formatAll(f,m.groupdict(),exceptKeys={"regex":None})
+                    f = cF.formatAll(f,m.groupdict(),exceptKeys={"regex":None})
 
                     # get tool of this file
                     if "tool" in f:
@@ -110,7 +110,7 @@ def searchFiles(searchDir,opts,fileValidationSpecs,fileValidationTools,pipelineT
                         
                     # make hashes
                     if "hashString" in spec:
-                        h = cf.makeUUID( spec["hashString"].format(**m.groupdict()) )
+                        h = cF.makeUUID( spec["hashString"].format(**m.groupdict()) )
                         f["hash"] = h
                     else:
                         raise ValueError("You need to define a 'hash' key for file %s " % str(spec))
@@ -268,7 +268,7 @@ def main():
                  """, metavar="<string>", required=False)
     
                                                        
-    parser.add_argument("--validateOnlyLastModified", dest="validateOnlyLastModified", type=cf.toBool, default=True,
+    parser.add_argument("--validateOnlyLastModified", dest="validateOnlyLastModified", type=cF.toBool, default=True,
             help="""The file with the moset recent modified time is only validated, all others are set to finished!.""", required=False)
                          
 
@@ -293,7 +293,7 @@ def main():
         print("output: %s" % opts.output)
         
         
-        d = cf.jsonLoad(opts.pipelineSpecs)
+        d = cF.jsonLoad(opts.pipelineSpecs)
         pipelineTools = d["pipelineTools"]
         fileValidationSpecs = d["fileValidationSpecs"]
         fileValidationTools = d["fileValidationTools"]
@@ -363,7 +363,7 @@ def main():
         
         print("Make output validation file")
         f = open(opts.output,"w+")
-        cf.jsonDump(finalFiles,f, sort_keys=True)
+        cF.jsonDump(finalFiles,f, sort_keys=True)
         f.close();
         
         # Renew status folder, move over new xml info
@@ -373,8 +373,8 @@ def main():
             finished = os.path.join(opts.statusFolder,"finished")
             recover = os.path.join(opts.statusFolder,"recover")
             
-            cf.makeDirectory(finished,interact=False, defaultMakeEmpty=True)
-            cf.makeDirectory(recover ,interact=False, defaultMakeEmpty=True)
+            cF.makeDirectory(finished,interact=False, defaultMakeEmpty=True)
+            cF.makeDirectory(recover ,interact=False, defaultMakeEmpty=True)
             # make symlinks for all files in the appropriate folder:
             paths = {"recover": recover, "finished": finished}           
             

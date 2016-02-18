@@ -15,7 +15,7 @@ class RenderProcessFileWriter:
     
     def __init__(self,pipelineSpecs, jobGenModules):
       
-        self.cf = jobGenModules["commonFunctions"]
+        self.cF = jobGenModules["commonFunctions"]
         self.iH = jobGenModules["importHelpers"]
         
         self.pipelineSpecs = pipelineSpecs
@@ -34,7 +34,7 @@ class RenderProcessFileWriter:
             
             c.sort(key=lambda fr: fr["frameIdx"])                      
             f = open(processFile.format(procIdx),"w+")
-            self.cf.jsonDump(c,f,indent=4)
+            self.cF.jsonDump(c,f,indent=4)
             f.close()
         
         print("Wrote render process files for all process indices")   
@@ -44,7 +44,7 @@ class ConverterProcessFileWriter:
     
     def __init__(self,pipelineSpecs, jobGenModules):
       
-      self.cf = jobGenModules["commonFunctions"]
+      self.cF = jobGenModules["commonFunctions"]
       self.iH = jobGenModules["importHelpers"]
         
       self.pipelineSpecs = pipelineSpecs
@@ -66,7 +66,7 @@ class ConverterProcessFileWriter:
                         fNode = ET.Element("File");
                         root.append(fNode)
                         fNode.attrib['simFile'] = f
-                        fNode.attrib['uuid'] = str(self.cf.makeUUID(f));
+                        fNode.attrib['uuid'] = str(self.cF.makeUUID(f));
 
                     if converter["status"] =="finished":
                         continue
@@ -81,6 +81,6 @@ class ConverterProcessFileWriter:
             tree = ET.ElementTree(root);
 
             f = open(processFile.format(procIdx),"w+")
-            f.write(self.cf.prettifyXML(root))
+            f.write(self.cF.prettifyXML(root))
             f.close()
         print("Wrote converter process files for all ranks")

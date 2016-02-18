@@ -9,10 +9,10 @@
 
 import os,copy
 import ast
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 from HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generator import GeneratorMPI
-
+from HPCJobConfigurator.jobGenerators import configuratorExceptions as CE
 
 
 class ToolPipeline(GeneratorMPI):
@@ -48,7 +48,7 @@ class ToolPipeline(GeneratorMPI):
         configDicts = [None]        
         
         if self.cCluster.jobIdxParent >= self.cCluster.nJobs-1:
-            raise ValueError("jobIdxParent=%i not feasible, since you generate %i jobs from idx 0 till %i !" % (self.cCluster.jobIdxParent,self.cCluster.nJobs, self.cCluster.nJobs-1) )
+            raise CE.MyValueError("jobIdxParent=%i not feasible, since you generate %i jobs from idx 0 till %i !" % (self.cCluster.jobIdxParent,self.cCluster.nJobs, self.cCluster.nJobs-1) )
         for jobIdx in range(0,self.cCluster.nJobs):
             
             print("Generating MPI Job: Simulation Render =================")
@@ -83,7 +83,7 @@ class ToolPipeline(GeneratorMPI):
                 self.printOptions()
                 
                 # make job script dir (if exists, try to remove it, if no -> abort)
-                cf.makeDirectory( self.cJob.scriptDir, name="Job script dir", defaultMakeEmpty=False, interact= self.cCluster.interact)
+                cF.makeDirectory( self.cJob.scriptDir, name="Job script dir", defaultMakeEmpty=False, interact= self.cCluster.interact)
                 
                 self.writeJobScriptArgs( os.path.join(self.cJob.scriptDir, "submitScriptArgs.txt" ) )
                 
@@ -95,7 +95,7 @@ class ToolPipeline(GeneratorMPI):
                 
                 if self.cCluster.submitJobs:
                     print("Trying to submit job with command: \n%s" % self.cJob.submitCommand)
-                    cf.callProcess(self.cJob.submitCommand)
+                    cF.callProcess(self.cJob.submitCommand)
 
         
             # save conficDict for next jobIdx (possibly)
@@ -115,4 +115,4 @@ class ToolPipeline(GeneratorMPI):
                 commands.append(c.Job.submitCommand)
         
         f.write("\n".join(commands))       
-        cf.makeExecutable(filePath);        
+        cF.makeExecutable(filePath);        

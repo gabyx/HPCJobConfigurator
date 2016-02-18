@@ -11,6 +11,8 @@
 import sys,os
 import os.path as path
 import argparse
+import colorama
+
 
 if sys.version_info[0] != 3:
     print("This script is only python3 compatible!")
@@ -37,12 +39,13 @@ configuratorModulePath = os.path.abspath(os.path.join(configuratorModuleDir,".."
 # set the path such that the configurator module gets found
 sys.path.append( configuratorModulePath )
 
-import jobGenerators as jg
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
-   
-def submit(configFile="Launch.ini", overwriteArgs = None):
+import HPCJobConfigurator.jobGenerators as jg
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
+from HPCJobConfigurator.jobGenerators import configuratorExceptions as CE
 
+def submit(configFile="Launch.ini", overwriteArgs = None):
+    
     p =  cap.ArgParser( default_config_files=[configFile])
     p.optionxform = str # dont make names lower case!
     
@@ -140,5 +143,9 @@ def submitInternal(config):
 
 
 if __name__ == "__main__":
-    
-   sys.exit(submit());
+   # initialize terminal colors
+   colorama.init()
+   CE.setColoredOutput()
+   err=submit()
+   colorama.deinit()
+   sys.exit(err);

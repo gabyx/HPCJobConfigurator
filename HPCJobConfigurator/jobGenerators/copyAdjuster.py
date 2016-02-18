@@ -16,7 +16,7 @@ import os.path as path
 class CopyAdjuster:
     
     def __init__(self,jobGenModules):
-        self.cf = jobGenModules["commonFunctions"]
+        self.cF = jobGenModules["commonFunctions"]
         self.iH = jobGenModules["importHelpers"]
     
     def __call__(self, generator, inputFile, outputFile,*args,**kwargs):

@@ -25,8 +25,8 @@ import xml.etree.ElementTree as ET
 from argparse import ArgumentParser
 from attrdict import AttrMap
 
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 
 
 class MyOptParser(ArgumentParser):
@@ -81,7 +81,7 @@ def main():
         print("Script: " + __file__ )
         
         if(opts.processFile):
-            frames = cf.jsonLoad(opts.processFile);
+            frames = cF.jsonLoad(opts.processFile);
 
             if not frames:
                 raise ValueError("No frames specified in xml %s" % opts.processFile)

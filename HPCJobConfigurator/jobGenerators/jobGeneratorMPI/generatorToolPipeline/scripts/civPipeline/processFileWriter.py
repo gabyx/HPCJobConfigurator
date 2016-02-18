@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 class CorrelatorProcessFileWriter:
     def __init__(self,pipelineSpecs,jobGenModules):
       
-      self.cf = jobGenModules["commonFunctions"]
+      self.cF = jobGenModules["commonFunctions"]
       self.iH = jobGenModules["importHelpers"]
       
       self.pipelineSpecs = pipelineSpecs
@@ -42,7 +42,7 @@ class CorrelatorProcessFileWriter:
             frames.sort(key=lambda fr: fr["frameIdx"])
                                   
             f = open(processFile.format(procIdx),"w+")
-            self.cf.jsonDump(c,f,indent=4)
+            self.cF.jsonDump(c,f,indent=4)
             f.close()
         
         print("Wrote correlator process files for all process indices")   
@@ -52,7 +52,7 @@ class ConverterProcessFileWriter:
     
     def __init__(self,pipelineSpecs,jobGenModules):
       
-      self.cf = jobGenModules["commonFunctions"]
+      self.cF = jobGenModules["commonFunctions"]
       self.iH = jobGenModules["importHelpers"]
       
       self.pipelineSpecs = pipelineSpecs
@@ -82,6 +82,6 @@ class ConverterProcessFileWriter:
             frames.sort(key=lambda fr: fr["frameIdx"])
                                   
             f = open(processFile.format(procIdx),"w+")
-            self.cf.jsonDump(c,f,indent=4)
+            self.cF.jsonDump(c,f,indent=4)
             f.close()
         print("Wrote converter process files for all ranks")

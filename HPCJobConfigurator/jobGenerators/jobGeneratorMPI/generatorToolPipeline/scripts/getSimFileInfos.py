@@ -11,8 +11,8 @@
 
 import sys,os, subprocess,shutil,io
 import xml.etree.ElementTree as ET
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 
 converterEnvDefault = "SIMCONV"
 

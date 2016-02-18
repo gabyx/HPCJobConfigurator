@@ -13,7 +13,7 @@ class RenderInfoFileWriter:
     
     def __init__(self,pipelineSpecs, jobGenModules):
         
-        self.cf = jobGenModules["commonFunctions"]
+        self.cF = jobGenModules["commonFunctions"]
         self.iH = jobGenModules["importHelpers"]
         self.gSFI = jobGenModules["getSimFileInfos"]
         
@@ -28,7 +28,7 @@ class RenderInfoFileWriter:
         
         hashes=[]
         for f in simFiles:
-            hashes.append( {'absPath': f, 'uuid': self.cf.makeUUID(f) } ) 
+            hashes.append( {'absPath': f, 'uuid': self.cF.makeUUID(f) } ) 
         
         frameInfo = []
         for procIdx, fList in enumerate(processFrames):
@@ -37,7 +37,7 @@ class RenderInfoFileWriter:
 
         
         f = open(infoFile,"w+")
-        self.cf.jsonDump({"hashes" : hashes , "frameInfo" : frameInfo},f,indent=4)
+        self.cF.jsonDump({"hashes" : hashes , "frameInfo" : frameInfo},f,indent=4)
         f.close()
         print("Wrote sim render info to: %s" % infoFile)
 

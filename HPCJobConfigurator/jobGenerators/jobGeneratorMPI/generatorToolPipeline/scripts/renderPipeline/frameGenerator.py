@@ -13,7 +13,7 @@ class FrameGenerator:
     
     def __init__(self,pipelineSpecs, jobGenModules):
         
-        self.cf = jobGenModules["commonFunctions"]
+        self.cF = jobGenModules["commonFunctions"]
         self.iH = jobGenModules["importHelpers"]
         self.gSFI = jobGenModules["getSimFileInfos"]
 
@@ -71,7 +71,7 @@ class FrameGenerator:
                                             "stateIdx":t[0], 
                                             "time":t[1], 
                                             "simFile": p , 
-                                            "uuid" : str(self.cf.makeUUID(p)), 
+                                            "uuid" : str(self.cF.makeUUID(p)), 
                                             "status":"convert"
                                            }, self.pipelineTools["converter"] ) , 
                                         "renderer": 
