@@ -127,5 +127,12 @@ Of course this is only a simple example. A more difficult example is provided by
 to be continued
 
 
+## JobGeneratorMPI
+  
+  Important stuff to be documented:
+  - localDir might only become a valid absolut path if fully expanded by Bash on a cluster (might contain Job specific variable such as $TMPDIR )
+    therefore do not store this value in configuration files which are not Bash scripts! If you need localDir hand it to your executable and deal with it.
+    
+
 ## Dependencies
 python 3, lxml, glob2, jsonpickle, demjson, AttrMap
