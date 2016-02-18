@@ -15,7 +15,7 @@ if sys.version_info[0] != 3:
     exit(1)
 
 import os, subprocess, ctypes,re,traceback,ast,copy
-import json
+import json, glob2
 
 
 from argparse import ArgumentParser
@@ -52,233 +52,325 @@ def validateFile(validationCommands,fileList):
             valid.append(False)
                      
     return valid
-   
+
+def searchFiles(searchDir,opts,fileValidationSpecs,fileValidationTools,pipelineTools):
+    # compile all regexes
+    regexes = {}
+    for i,spec in enumerate(fileValidationSpecs):
+        try:
+            regexes[i] = re.compile(spec["regex"])
+        except:
+            raise ValueError("Could not compile regex: %s" % spec["regex"])
+        
+    allFiles = {}
+    filesPerProc = {}
+    # walk directory and 
+    for dirpath, dirs, files in os.walk(searchDir,followlinks=True):
+
+        for file in files:
+            
+            filePath = os.path.realpath(os.path.join(dirpath, file)) 
+            # try to match path with all regexes till one matches:
+            for specIdx, spec in enumerate(fileValidationSpecs):
+                
+                m=regexes[specIdx].search(filePath)
+                
+                # we have a file match
+                if m:
+                    
+                    try:
+                        processId = int(m.group("processId"))                
+                    except:
+                        raise ValueError("Non convertable processId found in filePath %s" % filePath)  
+                    
+                    if processId not in filesPerProc:
+                        filesPerProc[processId] = {"allFiles" : [] , "tools" : { tool:[] for tool in pipelineTools.keys() } };
+                    
+                    #make dict for this file
+                    f = {}
+                    # add regex groups
+                    f.update(m.groupdict())
+
+                    # add all values from the validation spec (deep copy since we want for each one a different)
+                    f.update(copy.deepcopy(spec))
+                    
+                    # set file status on finished, (as initial guess, validation fully determines this value)
+                    f.update({"status":"finished"})                            
+                    
+                    # format all values again with the regex results
+                    f = cf.formatAll(f,m.groupdict(),exceptKeys={"regex":None})
+
+                    # get tool of this file
+                    if "tool" in f:
+                        tool = f["tool"]    
+                        if tool not in pipelineTools.keys():
+                            raise ValueError("The tool %s is not in %s!" % (tool,str(pipelineTools.keys())) )
+                    else:
+                        raise ValueError("You need to define a 'tool' key for %s " % str(spec))
+                        
+                    # make hashes
+                    if "hashString" in spec:
+                        h = cf.makeUUID( spec["hashString"].format(**m.groupdict()) )
+                        f["hash"] = h
+                    else:
+                        raise ValueError("You need to define a 'hash' key for file %s " % str(spec))
+                        
+                        
+                    # convert frameIdx
+                    if "frameIdx" in f:
+                         f["frameIdx"] = int(f["frameIdx"])
+                    else:
+                         raise ValueError("You need to define a 'frameIdx' key for %s (or in regex!) " % str(spec))                            
+                    
+                    # add file to the lists
+                    filesPerProc[processId]["allFiles"].append( f )
+                    filesPerProc[processId]["tools"][ tool ].append(f)
+                    
+                    
+                    if f["hash"] not in allFiles:
+                            allFiles[f["hash"]] = f
+                    else:
+                        raise ValueError("Found files with the same hash %s, %s, this should not happen!" % (f["absPath"], allFiles[f["hash"]]["absPath"] ) )
+                    
+                    
+                    break
+                        
+    if not allFiles:
+        print("We found no files in folder: %s to validate!" % searchDir) 
+        return allFiles          
+     
+    # sort files according to maximal modified time of the output files for each tool and each process
+    for procId, procFiles in filesPerProc.items():
+        for tool,files in procFiles["tools"].items():
+            filesPerProc[procId]["tools"][tool] =  sorted( files , key= lambda file : os.path.getmtime(file["absPath"]) );
+
+    #determine files to validate
+    filesToValidate = []
+    for procid, procFiles in filesPerProc.items():
+            if opts.validateOnlyLastModified:
+               # validate last file of all tools for each processor, to see if its ok or not, all others are valid
+               for tool, toolFiles in procFiles["tools"].items():
+                   if toolFiles:
+                       filesToValidate.append(toolFiles[-1])
+            else:
+               filesToValidate += procFiles["allFiles"]
+
+      
+    # Validate all files with the appropriate command
+
+    for fIdx, file in enumerate(filesToValidate):
+        try:
+            ext = os.path.splitext(file["absPath"])[1];
+            try:
+                validateCmd = fileValidationTools[ext]
+            except:
+                print("No validation command found for extentsion of file: %s" % file["absPath"])
+                raise
+            
+
+            validateCmd = validateCmd.format(**{"file":file["absPath"]})
+
+            try:
+                out = subprocess.check_output(validateCmd.split(" ")).decode('utf-8')
+            except:
+                print("Validation command %s failed!" % validateCmd)
+                raise
+                
+            if out not in ["finished","recover"]:
+                print("Validation output %s not in list ['finished','recover']" % out)
+                raise
+            else:
+                validationAttributes = {"status":out}
+                
+            filesToValidate[fIdx].update(validationAttributes);
+        except:
+
+            # file is invalid, clear this file from the list 
+            filesToValidate[fIdx]["status"] = "invalid";
+
+    print("Validated last files of each tool in the pipeline: ", "\n".join([ f["absPath"] + " --> " + f["status"] for f in filesToValidate ]) ) 
+
+    # filter all empty stuff from lists:
+    allFiles = dict(filter(lambda x : x[1]["status"] != "invalid" ,allFiles.items()))
+    del filesPerProc
+    return allFiles
+
+def loadValidationFiles(globExpr):
+  files = glob2.glob(globExpr)
+  if not files:
+    print("WARNING: No validation file infos found with globbing expression: '%s'" % globExpr)
+  else:
+    print("Found %i validation files" % len(files))
+    
+  valFiles = []
+  valDataAll = {}
+  for f in files:
+      data = json.load(open(f))
+      valFiles.append( { "path": f , "valData" : data } )
+      
+      for fileInfo in data:
+        fileInfo["validatationInfoPath"] = os.path.abspath(f)
+        h = fileInfo["hash"]
+        if h not in valDataAll:
+          valDataAll[h] = fileInfo
+        else:
+          raise NameError("FileInfo: %s already added to data set of all validation files: %s " % (fileInfo, files) )
+          
+  return valDataAll, valFiles
+
+def preferGlobalPaths(valDataAll):
+    """ The absPath might point to an inexistent file, replace by globalPath """
+    for valInfo in valDataAll.values():
+      absExists = os.path.exists(valInfo["absPath"])
+      if "globalPath" in valInfo:
+          globExists = os.path.exists(valInfo["globalPath"])
+          if globExists:
+              valInfo["absPath"] = valInfo["globalPath"]
+          elif absExists:
+              print("""WARNING: existing absPath: %s not replaced by inexistent globalPath %s """ % valInfo["globalPath"])
+      else:
+          if not absExists:
+              raise ValueError("You need to provide a globalPath in the file info! absPath %s not existing!" % valInfo["absPath"])
+      
+
 def main():
-         
+    
+    """ {old validatation file infos}  is compared 
+        to { new validation file infos}  ==> outputs new file validation info
+    """
     
     parser = MyOptParser()
     
-    parser.add_argument("-s", "--searchDir", dest="searchDir",
-            help="""This is the search directory where it is looked for render output files (.tiff,.exr,.rib.gz). """, metavar="<path>", required=True)
+    parser.add_argument("-s", "--searchDirNew", dest="searchDirNew",
+            help="""This is the search directory where it is looked for output files (.tiff,.exr,.rib.gz). """, 
+            metavar="<path>", default=None, required=False)
     
-    parser.add_argument("--pipelinespec", dest="pipelinespec", default="",
+    
+    parser.add_argument("--valFileInfoGlobNew", dest="valFileInfoGlobNew",
+            help="""
+            The globbing expression for all input xmls with file status which 
+            are consolidated into a new file info under --output. The found and validated files in --searchDir (if specified) are
+            added to the set of new files.
+            """, default=None, metavar="<glob>", required=False)
+    
+    parser.add_argument("--valFileInfoGlobOld", dest="valFileInfoGlobOld",
+            help="""
+            The globbing expression for all old input xmls with file status which 
+            are consolidated with the new files into a combined file info under --output.
+            """, default=None, metavar="<glob>", required=False)
+    
+    parser.add_argument("--pipelineSpecs", dest="pipelineSpecs", default="",
             help="""Json file with info about the pipeline, fileValidation, fileValidationTools.                 
                  """, metavar="<string>", required=True)
     
-    parser.add_argument("--statusFolder", dest="statusFolder", default="",
+    parser.add_argument("--statusFolder", dest="statusFolder", default=None,
             help="""The output status folder which contains links to files which are finished, or can be recovered.                
                  """, metavar="<string>", required=False)
     
                                                        
     parser.add_argument("--validateOnlyLastModified", dest="validateOnlyLastModified", type=cf.toBool, default=True,
             help="""The file with the moset recent modified time is only validated, all others are set to finished!.""", required=False)
-                    
-    parser.add_argument("-v", "--validationFileInfo", dest="validationFileInfo",
-            help="""The input xml with file status which is updated and a new info is saved under --output.""", default="", metavar="<path>", required=False)                
-    
+                         
+
     parser.add_argument("-o", "--output", dest="output",
             help="""The output xml which is written, which proivides validation info for each file found""", metavar="<path>", required=True)
     
     
     try:
         
-        print("================== FileValidation ==================== ")
-        
+        print("====================== FileValidation ===========================")
         
         opts= AttrMap(vars(parser.parse_args()))
-        print("searchDir: %s" % opts.searchDir)
-        print("validationInput: %s" % opts.validationFileInfo)
-        print("validationOutput: %s" % opts.output)
+        if not opts.searchDirNew and not opts.valFileInfoGlobNew:
+            raise ValueError("You need to define either searchDirNew or valFileInfoGlobNew!")
+        
+        if opts.valFileInfoGlobOld == "":
+            opts.valFileInfoGlobOld = None
+        
+        print("searchDir: %s" % opts.searchDirNew)
+        print("valFileInfoGlobNew: %s" % opts.valFileInfoGlobNew)
+        print("valFileInfoGlobOld: %s" % opts.valFileInfoGlobOld)
+        print("output: %s" % opts.output)
         
         
-        d = cf.jsonLoad(opts.pipelinespec)
+        d = cf.jsonLoad(opts.pipelineSpecs)
         pipelineTools = d["pipelineTools"]
-        fileValidationspec = d["fileValidationspec"]
+        fileValidationSpecs = d["fileValidationSpecs"]
         fileValidationTools = d["fileValidationTools"]
         
-        # compile all regexes
-        regexes = {}
-        for i,spec in enumerate(fileValidationspec):
-            try:
-                regexes[i] = re.compile(spec["regex"])
-            except:
-                raise ValueError("Could not compile regex: %s" % spec["regex"])
-            
-        allFiles = []
-        allFilesHash = {} 
-        filesPerProc = {}
-        # walk directory and 
-        for dirpath, dirs, files in os.walk(opts.searchDir,followlinks=True):
-
-            for file in files:
-                
-                filePath = os.path.realpath(os.path.join(dirpath, file)) 
-                # try to match path with all regexes till one matches:
-                for specIdx, spec in enumerate(fileValidationspec):
-                    
-                    m=regexes[specIdx].search(filePath)
-                    
-                    # we have a file match
-                    if m:
-                        
-                        try:
-                            processId = int(m.group("processId"))                
-                        except:
-                            raise ValueError("Non convertable processId found in filePath %s" % filePath)  
-                        
-                        if processId not in filesPerProc:
-                            filesPerProc[processId] = {"allFiles" : [] , "tools" : { tool:[] for tool in pipelineTools.keys() } };
-                        
-                        #make dict for this file
-                        f = {}
-                        # add regex groups
-                        f.update(m.groupdict())
-
-                        # add all values from the validation spec (deep copy since we want for each one a different)
-                        f.update(copy.deepcopy(spec))
-                        
-                        # set file status on finished, (as initial guess, validation fully determines this value)
-                        f.update({"status":"finished"})                            
-                        
-                        # format all values again with the regex results
-                        f = cf.formatAll(f,m.groupdict(),exceptKeys={"regex":None})
-
-                        # get tool of this file
-                        if "tool" in f:
-                            tool = f["tool"]    
-                            if tool not in pipelineTools.keys():
-                                raise ValueError("The tool %s is not in %s!" % (tool,str(pipelineTools.keys())) )
-                        else:
-                            raise ValueError("You need to define a 'tool' key for %s " % str(spec))
-                            
-                        # make hashes
-                        if "hashString" in spec:
-                            h = cf.makeUUID( spec["hashString"].format(**m.groupdict()) )
-                            f["hash"] = h
-                            if h not in allFilesHash:
-                                allFilesHash[h] = f
-                            else:
-                                raise ValueError("Found files with the same hash %s, %s, this should not happen!" % (f["absPath"], allFilesHash[h]["absPath"] ) )
-                        else:
-                            raise ValueError("You need to define a 'hash' key for file %s " % str(spec))
-                            
-                            
-                        # convert frameIdx
-                        if "frameIdx" in f:
-                             f["frameIdx"] = int(f["frameIdx"])
-                        else:
-                             raise ValueError("You need to define a 'frameIdx' key for %s (or in regex!) " % str(spec))                            
-                        
-                        # add file to the lists
-                        filesPerProc[processId]["allFiles"].append( f )
-                        filesPerProc[processId]["tools"][ tool ].append(f)
-                            
-                        allFiles.append(f)
-                        
-                        break
-                            
-        if not allFiles:
-            print("We found no files in folder: %s to validate!" % opts.searchDir)            
-            return 0
-         
-        # sort files according to maximal modified time of the output files for each tool and each process
-        for procId, procFiles in filesPerProc.items():
-            for tool,files in procFiles["tools"].items():
-                filesPerProc[procId]["tools"][tool] =  sorted( files , key= lambda file : os.path.getmtime(file["absPath"]) );
-
-        #determine files to validate
-        filesToValidate = []
-        for procid, procFiles in filesPerProc.items():
-                if opts.validateOnlyLastModified:
-                   # validate last file of all tools for each processor, to see if its ok or not, all others are valid
-                   for tool, toolFiles in procFiles["tools"].items():
-                       if toolFiles:
-                           filesToValidate.append(toolFiles[-1])
-                else:
-                   filesToValidate += procFiles["allFiles"]
-        
-          
-        # Validate all files with the appropriate command
-        
-        for fIdx, file in enumerate(filesToValidate):
-            try:
-                ext = os.path.splitext(file["absPath"])[1];
-                try:
-                    validateCmd = fileValidationTools[ext]
-                except:
-                    print("No validation command found for extentsion of file: %s" % file["absPath"])
-                    raise
-                
-
-                validateCmd = validateCmd.format(**{"file":file["absPath"]})
-
-                try:
-                    out = subprocess.check_output(validateCmd.split(" ")).decode('utf-8')
-                except:
-                    print("Validation command %s failed!" % validateCmd)
-                    raise
-                    
-                if out not in ["finished","recover"]:
-                    print("Validation output %s not in list ['finished','recover']" % out)
-                    raise
-                else:
-                    validationAttributes = {"status":out}
-                    
-                filesToValidate[fIdx].update(validationAttributes);
-            except:
-
-                # file is invalid, clear this file from the list 
-                filesToValidate[fIdx]["status"] = "invalid";
-        
-        print("Validated last files of each tool in the pipeline: ", "\n".join([ f["absPath"] + " --> " + f["status"] for f in filesToValidate ]) ) 
-        
-        
-        # filter all empty stuff from lists:
-        allFiles = list(filter(lambda x: x["status"] != "invalid" ,allFiles))
-        allFilesHash = dict(filter(lambda pair: pair[1]["status"] != "invalid", allFilesHash.items()))
-        del filesPerProc
-        
-                
-     
-        # compare with old fileInfo if we have one and update necessary files
-        
-        finalFiles = []        
+        valDataAllNew = dict()
         deleteFiles = []
         
-        if opts.validationFileInfo:
-            f = open(opts.validationFileInfo)
-            oldFileInfo = json.load(f)
+        # load new validataion datas
+        if opts.valFileInfoGlobNew is not None:
+            print("Load new validation files")
+            valDataAllNew , valFilesNew  = loadValidationFiles(opts.valFileInfoGlobNew)
             
-            for oldFile in oldFileInfo:
-                h = oldFile["hash"] 
-                if h not in allFilesHash:
+            preferGlobalPaths(valDataAllNew)
+            
+        
+        # add searchDir files to new set
+        # search files ============================================================================
+        if opts.searchDirNew is not None:
+            print("Validate all files in: %s with pipeLineSpecs: %s", (opts.searchDirNew , opts.pipelineSpecs) )
+            allFiles = searchFiles(opts.searchDirNew, opts, fileValidationSpecs,fileValidationTools,pipelineTools)
+            print(allFiles)
+            for ha, f in allFiles.items():
+              if ha in valDataAllNew:
+                  print("""WARNING: File %s already found in validation data set 
+                           from globbing expr. %s """ % (f["absPath"], opts.valFileInfoGlobNew))
+              else:
+                valDataAllNew[ha] = f
+        # ===============================================================================================
+        
+        
+        
+        # load old validation datas
+        if opts.valFileInfoGlobOld is not None:
+            print("Load old validation files")
+            valDataAllOld , valFilesOld  = loadValidationFiles(opts.valFileInfoGlobOld)
+            preferGlobalPaths(valDataAllOld)
+            
+            # add old to new validatation infos 
+            for ha, valInfo in valDataAllOld.items():
+              
+                if ha not in valDataAllNew:
+                    # this old file hash is not in our current list, so add it!
+                    
+                    # check absPath if it exists otherwise try to extent the relPath with dir of this validation file.
+                    if not os.path.exists(valInfo["absPath"]):
+                      absPath = os.path.join( os.path.dirname(valInfo["validatationInfoPath"]) , valInfo["relPath"] )
+                      if not os.path.exists(absPath):
+                         print(valInfo["validatationInfoPath"])
+                         raise NameError("""File path in valid. info file: %s 
+                                            does not exist, extended rel. path to: %s does also not exist!""" % (valInfo["absPath"],absPath))
+                      else:
+                         print("Replacing inexisting path %s with %s", valInfo["absPath"], absPath)
+                         valInfo["absPath"] = absPath
+                      
                     # copy element to new file info
-                    finalFiles.append(oldFile)
+                    valDataAllNew[ha] = valInfo
                 else:
                     # we have the same hash in the new info
                     # take our new one which is better!
-                    # added afterwards
-                    newFile = allFilesHash[h]
+                    # delete old file if it is not linked to by new file
 
-                    # TODO, symbolic link and so on
-                    # old one can be moved on the delete list                    
-                    # if the new file is no symbolic link to the old file (hardlinks does not matter!)
-                    if not os.path.islink(newFile["absPath"]):
-                        deleteFiles.append(oldFile)
+                    if  os.path.realpath(valDataAllNew[ha]["absPath"]) !=  os.path.realpath(valInfo["absPath"]):
+                        deleteFiles.append(valInfo["absPath"])
      
 
-        # write out all our produced files which 
-        for h,file in allFilesHash.items():
-            finalFiles.append(file)
+        # make final list
+        finalFiles = [ f for f in valDataAllNew.values() ]
         
-                
+        print("Make output validation file")
         f = open(opts.output,"w+")
         cf.jsonDump(finalFiles,f, sort_keys=True)
         f.close();
         
         # Renew status folder, move over new xml info
-        if opts.statusFolder:
-            
+        if opts.statusFolder is not None:
+          
+            print("Renew status folder:")
             finished = os.path.join(opts.statusFolder,"finished")
             recover = os.path.join(opts.statusFolder,"recover")
             
@@ -296,7 +388,7 @@ def main():
                 os.symlink(p, os.path.join( paths[f["status"]] , head+"-uuid-"+h+ext ) );
 
 
-        print("============================================================ ")
+        print("=================================================================")
         
     except Exception as e:
         print("====================================================================")

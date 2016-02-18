@@ -8,7 +8,6 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-    
 
 ES="start.sh:"
 
@@ -18,14 +17,12 @@ die() { yell "$*"; exit 1 ; }
 try() { "$@" || die "cannot $*"; }
 
 
-
 if [[ "${Cluster:mailAddress}" != "" ]] ;  then
     echo "EOM" | mail -s "Job: ${Job:jobName} has started" ${Cluster:mailAddress} 
 fi
 
 #echo "Make global dir ${Job:globalDir}" 
 try mkdir -p ${Job:globalDir} 
-
 
 
 exit 0

@@ -7,7 +7,7 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-import os,sys,traceback
+import os,sys,traceback,signal
 
 from attrdict import AttrMap
 from argparse import ArgumentParser
@@ -52,4 +52,4 @@ def main():
         return 1
 
 if __name__ == "__main__":
-   sys.exit(main());
+  sys.exit(main());

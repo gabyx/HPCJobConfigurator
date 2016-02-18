@@ -8,25 +8,13 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
- 
-
 
 logFile="${Job:scriptDir}/endLog.log"
-:> $logFile
+> $logFile
 
-
-exitFunc(){
-
-    # Send email
-    if [[ "${Cluster:mailAddress}" != "" ]]; then
-        cat $logFile | mail -s "Job: ${Job:jobName} has finished" ${Cluster:mailAddress}
-    fi
-
-    exit $1
-}
 
 yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; exitFunc 111; }
+die() { yell "$*"; exit 111; }
 try() { "$@" || die "cannot $*"; }
 
 
@@ -36,11 +24,11 @@ executeFilevalidation(){
     export PYTHONPATH
 
     python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \
-        --searchDir="${Pipeline-PostProcess:validationSearchDir}" \
+        --valFileInfoGlobNew "${Pipeline-PostProcess:validationInfoFilesProcessesGlob}" \
+        --valFileInfoGlobOld "${Pipeline-PreProcess:validationInfoFile}" \
         --pipelineSpecs="${Pipeline:pipelineSpecs}" \
         --validateOnlyLastModified=True \
         --statusFolder "${Pipeline-PostProcess:statusFolder}" \
-        --validationFileInfo  "${Pipeline-PreProcess:validationInfoFile}" \
         --output="${Pipeline-PostProcess:validationInfoFile}"  \
         >> $logFile 2>&1
         
@@ -57,6 +45,9 @@ try executeFilevalidation
 ##>> $logFile 2>&1 
 
 
+# Send email
+if [[ "${Cluster:mailAddress}" != "" ]]; then
+    cat $logFile | mail -s "Job: ${Job:jobName} has finished" ${Cluster:mailAddress}
+fi
 
-
-exitFunc 0
+exit 0

@@ -16,7 +16,7 @@ try() { "$@" || die "cannot $*"; }
 
 
 logFile="${Job:scriptDir}/startLog.log"
-:> $logFile
+> $logFile
 
 # preperation for render job
 PYTHONPATH=${General:configuratorModulePath}

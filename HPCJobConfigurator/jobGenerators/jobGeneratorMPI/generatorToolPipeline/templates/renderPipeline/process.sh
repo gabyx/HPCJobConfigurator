@@ -9,147 +9,204 @@
 # =====================================================================
 
 
-ES="process.sh:"
+ES="process.sh: Rank: ${Job:processIdxVariabel}:"
 
-# store initial stdout to 3
-exec 3>&1 
+thisPID="$BASHPID"
 
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; cleanup ; exit 111 ; }
-try() { "$@" || die "Rank: ${Job:processIdxVariabel}: cannot $*"; }
+stage=0
+signalReceived="False"
+cleaningUp="False"
 
-# trap echo gets redirected to initial stdout =  3
+function exitFunction(){
+    echo "Exiting $ES exit code: $1 (0=success), stage: ${stage}"
+    #if [[ ${signalReceived} == "True" ]]; then
+      ## http://www.cons.org/cracauer/sigint.html
+      ## kill ourself to signal calling process that we exited on signal
+      #trap - SIGINT
+      #kill -s SIGINT ${thisPID}
+    #else
+      exit $1
+    #fi
+}
+
 function trap_with_arg() {
     func="$1" ; shift
     for sig ; do
-        trap "$func $sig 1>&3" "$sig"
+        trap "$func $sig" "$sig"
     done
 }
 
-function cleanup(){
-    echo "$ES Rank: ${Job:processIdxVariabel}: do cleanup! ============="
-    ${Pipeline:cleanUpCommand}
-    echo "$ES Rank: ${Job:processIdxVariabel}: cleanup finished ========"
-    exit $1
+function executeFileValidation(){
+    # assemble pipeline status
+    PYTHONPATH=${General:configuratorModulePath}
+    export PYTHONPATH
+
+    python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \
+        --searchDirNew="${Job:processDir}" \
+        --pipelineSpecs="${Pipeline:pipelineSpecs}" \
+        --validateOnlyLastModified=True \
+        --output="${Pipeline:validationInfoFile}"
+        
+    return $?
 }
 
-function handleSignal() {
-    echo "$ES Rank: ${Job:processIdxVariabel}: Signal $1 catched, cleanup and exit."
-    cleanup 0
+function cleanup(){
+    if [[ ${cleaningUp} == "True" ]] ; then
+        # we are already cleaning up
+        return 0
+    else
+        cleaningUp="True"
+    fi
+    
+    echo "$ES do cleanup! =============" 
+    cd ${Job:processDir}
+    ${Pipeline:cleanUpCommand}
+    if [[ ${stage} -eq 2 ]]; then
+      executeFileValidation
+      echo "$ES fileValidation exitStatus: $?"
+    fi
+    echo "$ES cleanup finished ========"
 }
+
+function ignoreAllSignals(){
+    echo "$ES already shutting down: ignoring signal: $1"
+}
+function shutDownHandler() {
+    # ignore all signals
+    trap_with_arg ignoreAllSignals SIGINT SIGUSR1 SIGUSR2 SIGTERM
+    
+    signalReceived="True"
+    if [[ ${cleaningUp} == "False" ]]; then
+      echo "$ES Signal $1 catched, cleanup and exit."
+      cleanup
+      exitFunction 0
+    else
+      echo "$ES Signal $1 catched, we are already cleaning up, continue."
+    fi
+}
+
+function printTime(){
+    dt=$(echo "$2 - $1" | bc)
+    dd=$(echo "$dt/86400" | bc)
+    dt2=$(echo "$dt-86400*$dd" | bc)
+    dh=$(echo "$dt2/3600" | bc)
+    dt3=$(echo "$dt2-3600*$dh" | bc)
+    dm=$(echo "$dt3/60" | bc)
+    ds=$(echo "$dt3-60*$dm" | bc)
+    printf "$ES Time Elapsed: %d:%02d:%02d:%02.4f\n" $dd $dh $dm $ds
+}
+function launchInForeground(){
+  start=$(date +%s.%N) ;
+  "$@"
+  res=$?      
+  end=$(date +%s.%N) ;
+  printTime $start $end ;
+  return $res  
+}
+
+yell() { echo "$0: $*" >&2; }
+die() { yell "$1"; cleanup ; exitFunction 111 ; }
+try() { "$@" || die "$ES cannot $*" ; }
+dieNoCleanUp() { yell "$1"; exitFunction 111 ; }
+tryNoCleanUp() { "$@" || die "$ES cannot $*" ;  }
 
 # Setup the Trap
-trap_with_arg handleSignal SIGINT SIGTERM SIGUSR1 SIGUSR2
+# Be aware that SIGINT and SIGTERM will be catched here, but if this script is run with mpirun
+# mpirun will forward SIGINT/SIGTERM and then quit, leaving this script still running in the signal handler
+trap_with_arg shutDownHandler SIGINT SIGUSR1 SIGUSR2 SIGTERM
 
 
 if [[ -z "${Job:processIdxVariabel}" ]]; then
     echo "Rank not defined! "
-    exit 1
+    exitFunction 111
 fi
 
-
 rm -fr ${Job:processDir}
-try mkdir -p ${Job:processDir}
+tryNoCleanUp mkdir -p ${Job:processDir}
 cd ${Job:processDir}
 
+# put stdout and stderr into logFile
 logFile="${Job:processDir}/processLog.log"
-:> $logFile
+#http://stackoverflow.com/a/18462920/293195
+exec 3>&1 1>>${logFile} 2>&1
 
-
-echo "File Mover =======================================================" >> $logFile
-echo "Search file move process file ..." >> $logFile
+stage=0
+echo "File Mover =======================================================" 
+echo "Search file move process file ..."
 fileMoverProcessFile=$( python3 -c "print(\"${Pipeline-PreProcess:fileMoverProcessFile}\".format(${Job:processIdxVariabel}))" )
 
 if [ ! -f "$fileMoverProcessFile" ]; then
-    echo "File mover process file (.xml) not found! It seems we are finished moving files! (file: $fileMoverProcessFile)" >> $logFile
-    
+    echo "File mover process file (.xml) not found! It seems we are finished moving files! (file: $fileMoverProcessFile)" 
 else
-    echo "File mover process file : $fileMoverProcessFile" >> $logFile
-    echo "Start moving files" >> $logFile
-    echo "Change directory to ${Job:processDir}" >> $logFile
-
+    echo "File mover process file : $fileMoverProcessFile" 
+    echo "Start moving files" 
+    echo "Change directory to ${Job:processDir}" 
     cd ${Job:processDir}
 
     PYTHONPATH=${General:configuratorModulePath}
     export PYTHONPATH
-    
-    begin=$(date +"%s")
-    try python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.fileMove \
-        -p "$fileMoverProcessFile" >> $logFile 2>&1 
-    
-    termin=$(date +"%s")
-    difftimelps=$(($termin-$begin))
-    echo "File mover statistics: $(($difftimelps / 60)) minutes and $(($difftimelps % 60)) seconds elapsed." >> $logFile  
-      
+
+    try launchInForeground python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.fileMove \
+        -p "$fileMoverProcessFile"
+        
 fi
-echo "==================================================================" >> $logFile
+echo "==================================================================" 
 
 cd ${Job:processDir}
 
-echo "Converter ========================================================" >> $logFile
-echo "Search converter process file ..." >> $logFile
+stage=1
+echo "Converter ========================================================" 
+echo "Search converter process file ..." 
 converterProcessFile=$( python3 -c "print(\"${Pipeline:converterProcessFile}\".format(${Job:processIdxVariabel}))" )
 
 if [ ! -f "$converterProcessFile" ]; then
-    echo "Converter process file (.xml) not found! It seems we are finished converting! (file: $converterProcessFile)" >> $logFile
-    
+    echo "Converter process file (.xml) not found! It seems we are finished converting! (file: $converterProcessFile)" 
 else
-    echo "Converter process file : $converterProcessFile" >> $logFile
-    echo "Start converting the files" >> $logFile
-    echo "Change directory to ${Pipeline:converterExecutionDir}" >> $logFile
-
+    echo "Converter process file : $converterProcessFile" 
+    echo "Start converting the files" 
+    echo "Change directory to ${Pipeline:converterExecutionDir}" 
+    
     cd ${Pipeline:converterExecutionDir}
     begin=$(date +"%s")
-    try ${Pipeline:executableConverter} renderer\
+    try launchInForeground ${Pipeline:executableConverter} renderer \
         -i $converterProcessFile \
         -r renderman \
         -s ${Pipeline:sceneFile} \
         -m ${Pipeline:mediaDir} \
-        -c ${Pipeline:converterLogic} >> $logFile 2>&1 
-    
-    termin=$(date +"%s")
-    difftimelps=$(($termin-$begin))
-    echo "Converter statistics: $(($difftimelps / 60)) minutes and $(($difftimelps % 60)) seconds elapsed." >> $logFile  
-      
-fi
-echo "==================================================================" >> $logFile
+        -c ${Pipeline:converterLogic}
 
+fi
+echo "==================================================================" 
 
 cd ${Job:processDir}
 
-
-echo "Render ===========================================================" >> $logFile
-echo "Search render process file ..." >> $logFile
+stage=2
+echo "Render ===========================================================" 
+echo "Search render process file ..." 
 renderProcessFile=$( python3 -c "print(\"${Pipeline:renderProcessFile}\".format(${Job:processIdxVariabel}))" )
 
 if [ ! -f "$renderProcessFile" ]; then
-    echo "Render process file (.xml) not found! It seems we are finished rendering! (file: $renderProcessFile)" >> $logFile
+    echo "Render process file (.xml) not found! It seems we are finished rendering! (file: $renderProcessFile)" 
 else
-    echo "Render process file : $renderProcessFile" >> $logFile
-    echo "Start rendering the files" >> $logFile
-    echo "Change directory to ${Pipeline:renderExecutionDir}" >> $logFile
+    echo "Render process file : $renderProcessFile" 
+    echo "Start rendering the files" 
+    echo "Change directory to ${Pipeline:renderExecutionDir}" 
     cd ${Pipeline:renderExecutionDir}
     PYTHONPATH=${General:configuratorModulePath}
     export PYTHONPATH
-    
-    begin=$(date +"%s")
-    
-    try python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.renderPipeline.renderFrames \
+
+    try launchInForeground python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.renderPipeline.renderFrames \
         -p "$renderProcessFile" \
-        -c "${Pipeline:executableRenderer}" >> $logFile 2>&1 
-        
-    termin=$(date +"%s")
-    difftimelps=$(($termin-$begin))
-    echo "Render statistics: $(($difftimelps / 60)) minutes and $(($difftimelps % 60)) seconds elapsed." >> $logFile    
+        -c "${Pipeline:executableRenderer}"
             
 fi
-echo "================================================================== " >> $logFile
+echo "================================================================== " 
 
 cd ${Job:processDir}
 
-echo "Final cleanup ====================================================" >> $logFile
+echo "Final cleanup ====================================================" 
 cleanup
-echo "================================================================== " >> $logFile
+echo "================================================================== " 
 
 
 exit 0 

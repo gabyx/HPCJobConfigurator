@@ -289,10 +289,9 @@ class CommonFunctions:
     jsonpickle.load_backend(jsonBackend,"encode","decode",ValueError)
     jsonpickle.set_preferred_backend(jsonBackend)
     jsonpickle.set_decoder_options(jsonBackend,decode_float=float)
-    jsonpickle.set_encoder_options(jsonBackend,compactly=False)
     
-    def jsonDump(obj,file,*args,**kargs):
-        jsonpickle.set_encoder_options(CommonFunctions.jsonBackend,*args,**kargs)
+    def jsonDump(obj,file,compact=False,*args,**kargs):
+        jsonpickle.set_encoder_options(CommonFunctions.jsonBackend,compactly=compact,*args,**kargs)
         file.write(jsonpickle.encode(obj))
         
     def jsonParse(s):
