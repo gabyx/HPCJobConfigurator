@@ -18,6 +18,9 @@ die() { yell "$*"; exit 111; }
 try() { "$@" || die "cannot $*"; }
 
 
+# Collects all FileInfos in each Process folder
+# compares to the old FileInfo from last job
+# writes a new output FileInfo for this job
 executeFilevalidation(){
     # assemble pipeline status
     PYTHONPATH=${General:configuratorModulePath}
@@ -35,14 +38,32 @@ executeFilevalidation(){
     return $?
 }
 
-try executeFilevalidation
+# Validates all files in the job folder (over all processes)
+# compares to the old FileInfo from last job
+# writes a new output FileInfo for this job
+executeFilevalidationAll(){
+    # assemble pipeline status
+    PYTHONPATH=${General:configuratorModulePath}
+    export PYTHONPATH
 
+    python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \
+        --searchDirNew "${Pipeline-PostProcess:validationSearchDir}" \
+        --valFileInfoGlobOld "${Pipeline-PreProcess:validationInfoFile}" \
+        --pipelineSpecs="${Pipeline:pipelineSpecs}" \
+        --validateOnlyLastModified=True \
+        --statusFolder "${Pipeline-PostProcess:statusFolder}" \
+        --output="${Pipeline-PostProcess:validationInfoFile}"  \
+        >> $logFile 2>&1
+        
+    return $?
+}
 
-#echo "Change directory to ${Job:globalDir}" >> $logFile
-#cd ${Job:globalDir}
-#try python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorRigidBodyRender.scripts.fileMove \
-#-p "{Pipeline-PreProcess:fileMoverGlobalPostProcessFile}" 
-##>> $logFile 2>&1 
+# combine FileInfos
+# try executeFilevalidation
+
+# manually validate all files (use this function if executeFilevalidation failed)
+try executeFilevalidationAll
+
 
 
 # Send email
