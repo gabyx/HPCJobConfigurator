@@ -33,7 +33,7 @@ if [[ "${Cluster:mailAddress}" != "" ]] ;  then
 fi
 
 echo "Make global dir ${Job:globalDir}" >> $logFile 2>&1 
-try mkdir -p ${Job:globalDir}
+try mkdir -p "${Job:globalDir}"
 
 
 exit 0

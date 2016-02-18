@@ -17,6 +17,8 @@ stage=0
 signalReceived="False"
 cleaningUp="False"
 
+
+
 function exitFunction(){
     echo "Exiting $ES exit code: $1 (0=success), stage: ${stage}"
     #if [[ ${signalReceived} == "True" ]]; then
@@ -42,7 +44,7 @@ function executeFileValidation(){
     export PYTHONPATH
 
     python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \
-        --searchDirNew="${Job:processDir}" \
+        --searchDirNew="${processDir}" \
         --pipelineSpecs="${Pipeline:pipelineSpecs}" \
         --validateOnlyLastModified=True \
         --output="${Pipeline:validationInfoFile}"
@@ -51,7 +53,7 @@ function executeFileValidation(){
 }
 
 function cleanup(){
-    if [[ ${cleaningUp} == "True" ]] ; then
+    if [[ "${cleaningUp}" == "True" ]] ; then
         # we are already cleaning up
         return 0
     else
@@ -59,7 +61,7 @@ function cleanup(){
     fi
     
     echo "$ES do cleanup! =============" 
-    cd ${Job:processDir}
+    cd ${processDir}
     ${Pipeline:cleanUpCommand}
     if [[ ${stage} -eq 2 ]]; then
       executeFileValidation
@@ -76,7 +78,7 @@ function shutDownHandler() {
     trap_with_arg ignoreAllSignals SIGINT SIGUSR1 SIGUSR2 SIGTERM
     
     signalReceived="True"
-    if [[ ${cleaningUp} == "False" ]]; then
+    if [[ "${cleaningUp}" == "False" ]]; then
       echo "$ES Signal $1 catched, cleanup and exit."
       cleanup
       exitFunction 0
@@ -121,12 +123,13 @@ if [[ -z "${Job:processIdxVariabel}" ]]; then
     exitFunction 111
 fi
 
-rm -fr ${Job:processDir}
-tryNoCleanUp mkdir -p ${Job:processDir}
-cd ${Job:processDir}
+rm -fr "${Job:processDir}"
+tryNoCleanUp mkdir -p "${Job:processDir}"
+cd "${Job:processDir}"
+processDir=$(pwd)
 
 # put stdout and stderr into logFile
-logFile="${Job:processDir}/processLog.log"
+logFile="${processDir}/processLog.log"
 #http://stackoverflow.com/a/18462920/293195
 exec 3>&1 1>>${logFile} 2>&1
 
@@ -140,8 +143,8 @@ if [ ! -f "$fileMoverProcessFile" ]; then
 else
     echo "File mover process file : $fileMoverProcessFile" 
     echo "Start moving files" 
-    echo "Change directory to ${Job:processDir}" 
-    cd ${Job:processDir}
+    echo "Change directory to ${processDir}" 
+    cd ${processDir}
 
     PYTHONPATH=${General:configuratorModulePath}
     export PYTHONPATH
@@ -152,7 +155,7 @@ else
 fi
 echo "==================================================================" 
 
-cd ${Job:processDir}
+cd ${processDir}
 
 stage=1
 echo "Converter ========================================================" 
@@ -178,7 +181,7 @@ else
 fi
 echo "==================================================================" 
 
-cd ${Job:processDir}
+cd ${processDir}
 
 stage=2
 echo "Render ===========================================================" 
@@ -202,7 +205,7 @@ else
 fi
 echo "================================================================== " 
 
-cd ${Job:processDir}
+cd ${processDir}
 
 echo "Final cleanup ====================================================" 
 cleanup

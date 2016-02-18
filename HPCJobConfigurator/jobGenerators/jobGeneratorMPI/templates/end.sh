@@ -13,7 +13,7 @@
 ES="end.sh:"
 
 if [[ "${Cluster:mailAddress}" != "" ]];  then
-    echo "EOM" | mail -s "Job: ${Job:jobName} has finished" ${Cluster:mailAddress}
+    echo "EOM" | mail -s "Job: ${Job:jobName} has finished" "${Cluster:mailAddress}"
 fi
 
 exit 0

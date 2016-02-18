@@ -14,11 +14,11 @@ ES="postProcess.sh:"
 echo "$ES Move Directory: ${Job:localDir} "
 
 # make dir if it does not yet exist
-mkdir -p ${Job:globalDir}
+mkdir -p "${Job:globalDir}"
 
 if [[ "${Job:copyLocation}" != "" ]]; then
     echo "$ES Delete temp folder"
-    rm -fr ${Job:localDir}/temp/
+    rm -fr "${Job:localDir}/temp/"
 fi
 
 # dont follow symbolic, links, copy symbolic links as is!
@@ -28,7 +28,7 @@ if [[ "${Job:localDir}" != "${Job:globalDir}" ]]; then
         
         # tar local folder to global dir  (name it like the host name $HOSTNAME or if not defined use $HOME)
         echo "$ES Tar ${Job:localDir}  --->  ${Job:globalDir} "
-        cd ${Job:localDir}
+        cd "${Job:localDir}"
         if [[ "${HOSTNAME}" == "" ]] ; then
             f="${HOME}-localOut.tar"
         else
@@ -37,10 +37,10 @@ if [[ "${Job:localDir}" != "${Job:globalDir}" ]]; then
         ${Job:tarCommandToGlobalDir} "${Job:globalDir}/$f" -C "${Job:localDir}" ./
     else
         echo "$ES Copying (options -rpP) ${Job:localDir}  --->  ${Job:globalDir} "
-        cp -rpP ${Job:localDir}/* ${Job:globalDir}/ 
+        cp -rpP ${Job:localDir}/* "${Job:globalDir}/" 
     fi
     
-    rm -rf ${Job:localDir}
+    rm -rf "${Job:localDir}"
 fi
 
 exit 0

@@ -18,14 +18,14 @@ try() { "$@" || die "cannot $*"; }
 
 
 echo "$ES Remove and Make Directory:  ${Job:localDir}"
-rm -r ${Job:localDir} > /dev/null 2>&1
-try mkdir -p ${Job:localDir} 
+rm -r "${Job:localDir}" > /dev/null 2>&1
+try mkdir -p "${Job:localDir}"
 
 if [[ "${Job:copyLocation}" != "" ]]; then
     echo "$ES Create: temp folder" 
-    try mkdir -p ${Job:localDir}/temp
+    try mkdir -p "${Job:localDir}/temp"
     echo "$ES Copy files to node"
-    try cp -r ${Job:copyLocation} ${Job:localDir}/temp/
+    try cp -r "${Job:copyLocation}" "${Job:localDir}/temp/"
 fi
 
 exit 0

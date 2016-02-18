@@ -18,11 +18,11 @@ try() { "$@" || die "cannot $*"; }
 
 
 if [[ "${Cluster:mailAddress}" != "" ]] ;  then
-    echo "EOM" | mail -s "Job: ${Job:jobName} has started" ${Cluster:mailAddress} 
+    echo "EOM" | mail -s "Job: ${Job:jobName} has started" "${Cluster:mailAddress}"
 fi
 
 #echo "Make global dir ${Job:globalDir}" 
-try mkdir -p ${Job:globalDir} 
+try mkdir -p "${Job:globalDir}"
 
 
 exit 0
