@@ -8,12 +8,8 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){
-    date +"%H:%M:%S"
-}
-
-ES="$(currTime) :: process.sh: Rank: ${Job:processIdxVariabel}:"
-
+function currTime(){ date +"%H:%M:%S" }
+function ES(){ echo "$(currTime) :: process.sh: Rank: ${Job:processIdxVariabel}" }
 
 executionDir=$(pwd)
 
@@ -27,7 +23,7 @@ cleaningUp="False"
 exec 4>&1
 
 function exitFunction(){
-    echo "Exiting $ES exit code: $1 (0=success), stage: ${stage}" 1>&4
+    echo "Exiting $(ES) exit code: $1 (0=success), stage: ${stage}" 1>&4
     #if [[ ${signalReceived} == "True" ]]; then
       ## http://www.cons.org/cracauer/sigint.html
       ## kill ourself to signal calling process that we exited on signal
@@ -67,20 +63,20 @@ function cleanup(){
         cleaningUp="True"
     fi
     
-    echo "$ES do cleanup! ============= $(currTime)" 
+    echo "$(ES) do cleanup! =============" 
     echo 
     echo "Execute CleanUpCommand ${Pipeline:cleanUpCommand}"
     cd ${executionDir}
     ${Pipeline:cleanUpCommand}
     if [[ ${stage} -ge 1 ]]; then
       executeFileValidation
-      echo "$ES fileValidation exitStatus: $?"
+      echo "$(ES) fileValidation exitStatus: $?"
     fi
-    echo "$ES cleanup finished ======== $(currTime)"
+    echo "$(ES) cleanup finished ========"
 }
 
 function ignoreAllSignals(){
-    echo "$ES already shutting down: ignoring signal: $1"
+    echo "$(ES) already shutting down: ignoring signal: $1"
 }
 function shutDownHandler() {
     # ignore all signals
@@ -88,11 +84,11 @@ function shutDownHandler() {
     
     signalReceived="True"
     if [[ "${cleaningUp}" == "False" ]]; then
-      echo "$ES Signal $1 catched, cleanup and exit."
+      echo "$(ES) Signal $1 catched, cleanup and exit."
       cleanup
       exitFunction 0
     else
-      echo "$ES Signal $1 catched, we are already cleaning up, continue."
+      echo "$(ES) Signal $1 catched, we are already cleaning up, continue."
     fi
 }
 
@@ -104,7 +100,7 @@ function printTime(){
     dt3=$(echo "$dt2-3600*$dh" | bc)
     dm=$(echo "$dt3/60" | bc)
     ds=$(echo "$dt3-60*$dm" | bc)
-    printf "$ES Time Elapsed: %d:%02d:%02d:%02.4f\n" $dd $dh $dm $ds
+    printf "$(ES) Time Elapsed: %d:%02d:%02d:%02.4f\n" $dd $dh $dm $ds
 }
 function launchInForeground(){
   start=$(date +%s.%N) ;
@@ -117,9 +113,9 @@ function launchInForeground(){
 
 yell() { echo "$0: $*" >&2; }
 die() { yell "$1"; cleanup ; exitFunction 111 ; }
-try() { "$@" || die "$ES cannot $*" ; }
+try() { "$@" || die "$(ES) cannot $*" ; }
 dieNoCleanUp() { yell "$1"; exitFunction 111 ; }
-tryNoCleanUp() { "$@" || die "$ES cannot $*" ;  }
+tryNoCleanUp() { "$@" || die "$(ES) cannot $*" ;  }
 
 # Setup the Trap
 # Be aware that SIGINT and SIGTERM will be catched here, but if this script is run with mpirun
@@ -145,7 +141,7 @@ logFile="${processDir}/processLog.log"
 exec 3>&1 1>>${logFile} 2>&1
 
 stage=0
-echo "File Mover =======================================================" 
+echo "$(ES) File Mover =======================================================" 
 echo "Search file move process file ..."
 fileMoverProcessFile=$( python3 -c "print(\"${Pipeline-PreProcess:fileMoverProcessFile}\".format(${Job:processIdxVariabel}))" )
 
@@ -164,12 +160,12 @@ else
         -p "$fileMoverProcessFile"
         
 fi
-echo "==================================================================" 
+echo "$(ES) ==================================================================" 
 
 cd ${processDir}
 
 stage=1
-echo "Converter ========================================================" 
+echo "$(ES) Converter ========================================================" 
 echo "Search converter process file ..." 
 converterProcessFile=$( python3 -c "print(\"${Pipeline:converterProcessFile}\".format(${Job:processIdxVariabel}))" )
 
@@ -190,12 +186,12 @@ else
         -c ${Pipeline:converterLogic}
 
 fi
-echo "==================================================================" 
+echo "$(ES) ==================================================================" 
 
 cd ${processDir}
 
 stage=2
-echo "Render ===========================================================" 
+echo "$(ES) Render ===========================================================" 
 echo "Search render process file ..." 
 renderProcessFile=$( python3 -c "print(\"${Pipeline:renderProcessFile}\".format(${Job:processIdxVariabel}))" )
 
@@ -214,13 +210,13 @@ else
         -c "${Pipeline:executableRenderer}"
             
 fi
-echo "================================================================== " 
+echo "$(ES) ================================================================== " 
 
 cd ${processDir}
 
-echo "Final cleanup ====================================================" 
+echo "$(ES) Final cleanup ====================================================" 
 cleanup
-echo "================================================================== " 
+echo "$(ES) ================================================================== " 
 
 
 exit 0 

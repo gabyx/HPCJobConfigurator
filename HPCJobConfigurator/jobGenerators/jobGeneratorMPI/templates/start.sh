@@ -9,7 +9,8 @@
 # =====================================================================
 
 
-ES="start.sh:"
+function currTime(){ date +"%H:%M:%S" }
+function ES(){ echo "$(currTime) :: start.sh: " }
 
 
 yell() { echo "$0: $*" >&2; }

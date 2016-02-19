@@ -8,10 +8,8 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){
-    date +"%H:%M:%S"
-}
-ES="$(currTime) :: launch.sh:"
+function currTime(){ date +"%H:%M:%S" }
+function ES(){ echo "$(currTime) :: launch.sh:" }
 
 # Trick the batch system to see this script as an MPI
 # the commands below with /usr/bin/time
@@ -25,7 +23,7 @@ cleaningUp="False"
 
 function exitFunction(){
     
-    echo "Exiting $ES exit code: $1 (0=success), stage: ${stage}"
+    echo "$(ES) Exiting: exit code: $1 (0=success), stage: ${stage}"
     if [[ ${signalReceived} == "True" ]]; then
       # http://www.cons.org/cracauer/sigint.html
       # kill ourself to signal calling process that we exited on signal
@@ -53,29 +51,29 @@ function cleanup(){
         cleaningUp="True"
     fi
     
-    echo "$ES Script in stage $stage!"
+    echo "$(ES) Script in stage $stage!"
     if [[ $stage -ge 2 ]]; then
         # Postprocess per node
-        echo "$ES Execute Postprocess =================="
+        echo "$(ES) Execute Postprocess =================="
           stage=3
           launchInForeground mpirun -npernode 1 ${TemplatesOut:postProcessPerNode}
-        echo "$ES ======================================"
+        echo "$(ES) ======================================"
 
-        echo "$ES Execute End =========================="
+        echo "$(ES) Execute End =========================="
           stage=4
           launchInForeground ${TemplatesOut:endJob}
-        echo "$ES ======================================"
+        echo "$(ES) ======================================"
     else
         # launch did not reach at least stage 2 (process)
         # clean up everything
-        echo "$ES cleanup: Standard clean up... (delete local dir) ====="
+        echo "$(ES) cleanup: Standard clean up... (delete local dir) ====="
           launchInForeground mpirun -npernode 1 rm -rf ${Job:localDir}  
-        echo "$ES cleanup: ============================================="
+        echo "$(ES) cleanup: ============================================="
     fi
 }
 
 function ignoreAllSignals(){
-    echo "$ES already shutting down: ignoring signal: $1"
+    echo "$(ES) already shutting down: ignoring signal: $1"
 }
 function shutDownHandler() {
     # make ignoring all signals
@@ -84,11 +82,11 @@ function shutDownHandler() {
     signalReceived="True"
     
     if [[ ${cleaningUp} == "False" ]]; then
-      echo "$ES Signal $1 catched, cleanup and exit."
+      echo "$(ES) Signal $1 catched, cleanup and exit."
       cleanup
       exitFunction 0
     else
-      echo "$ES Signal $1 catched, we are already cleaning up, continue."
+      echo "$(ES) Signal $1 catched, we are already cleaning up, continue."
     fi
 }
 
@@ -100,7 +98,7 @@ function printTime(){
     dt3=$(echo "$dt2-3600*$dh" | bc)
     dm=$(echo "$dt3/60" | bc)
     ds=$(echo "$dt3-60*$dm" | bc)
-    printf "$ES Time Elapsed: %d:%02d:%02d:%02.4f\n" $dd $dh $dm $ds
+    printf "$(ES) Time Elapsed: %d:%02d:%02d:%02.4f\n" $dd $dh $dm $ds
 }
 
 function launchInForeground(){
@@ -114,31 +112,31 @@ function launchInForeground(){
 
 yell() { echo "$0: $*" >&2; }
 die() { yell "$*"; cleanup ; exitFunction 111; }
-try() { "$@" || die "$ES cannot $*"; }
+try() { "$@" || die "$(ES) cannot $*"; }
 
 
 # Setup the Trap
 trap_with_arg shutDownHandler SIGINT SIGTERM SIGUSR1 SIGUSR2 
 
-echo "$ES Execute Start ========================"
+echo "$(ES) Execute Start ========================"
 # stage which indicates in which state the program was, 0= nothing executed, 1=proprocess executed, 2=launch executed, 3= post executed
 stage=0
   try launchInForeground ${TemplatesOut:startJob}
-echo "$ES ======================================"
+echo "$(ES) ======================================"
 
 
 # Preprocess per node
-echo "$ES Execute Preprocess ==================="
+echo "$(ES) Execute Preprocess ==================="
 stage=1
   try launchInForeground mpirun -npernode 1 ${TemplatesOut:preProcessPerNode}
-echo "$ES ======================================"
+echo "$(ES) ======================================"
 
 
 # Run processes
-echo "$ES Run MPI Task ========================="
+echo "$(ES) Run MPI Task ========================="
 stage=2
   try launchInForeground mpirun -np ${Cluster:nProcesses} ${TemplatesOut:processPerCore}
-echo "$ES ======================================"
+echo "$(ES) ======================================"
 
 # Run cleanup
 cleanup

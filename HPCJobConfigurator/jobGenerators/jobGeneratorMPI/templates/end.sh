@@ -9,8 +9,9 @@
 # =====================================================================
 
  
+function currTime(){ date +"%H:%M:%S" }
+function ES(){ echo "$(currTime) :: end.sh: " }
 
-ES="end.sh:"
 
 if [[ "${Cluster:mailAddress}" != "" ]];  then
     echo "EOM" | mail -s "Job: ${Job:jobName} has finished" "${Cluster:mailAddress}"

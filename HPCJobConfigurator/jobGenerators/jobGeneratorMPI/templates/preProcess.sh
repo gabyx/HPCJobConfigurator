@@ -8,23 +8,23 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
+function currTime(){ date +"%H:%M:%S" }
+function ES(){ echo "$(currTime) :: preProcess.sh: Rank: ${Job:processIdxVariabel}" }
 
-
-ES="preProcess.sh:"
 
 yell() { echo "$0: $*" >&2; }
 die() { yell "$*"; exit 111; }
 try() { "$@" || die "cannot $*"; }
 
 
-echo "$ES Remove and Make Directory:  ${Job:localDir}"
+echo "$(ES) Remove and Make Directory:  ${Job:localDir}"
 rm -r "${Job:localDir}" > /dev/null 2>&1
 try mkdir -p "${Job:localDir}"
 
 if [[ "${Job:copyLocation}" != "" ]]; then
-    echo "$ES Create: temp folder" 
+    echo "$(ES) Create: temp folder" 
     try mkdir -p "${Job:localDir}/temp"
-    echo "$ES Copy files to node"
+    echo "$(ES) Copy files to node"
     try cp -r "${Job:copyLocation}" "${Job:localDir}/temp/"
 fi
 

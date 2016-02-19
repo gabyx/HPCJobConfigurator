@@ -8,16 +8,17 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
+function currTime(){ date +"%H:%M:%S" }
+function ES(){ echo "$(currTime) :: postProcess.sh: Rank: ${Job:processIdxVariabel}" }
 
-ES="postProcess.sh:"
 
-echo "$ES Move Directory: ${Job:localDir} "
+echo "$(ES) Copy Directory: ${Job:localDir} "
 
 # make dir if it does not yet exist
 mkdir -p "${Job:globalDir}"
 
 if [[ "${Job:copyLocation}" != "" ]]; then
-    echo "$ES Delete temp folder"
+    echo "$(ES) Delete temp folder"
     rm -fr "${Job:localDir}/temp/"
 fi
 
@@ -27,7 +28,7 @@ if [[ "${Job:localDir}" != "${Job:globalDir}" ]]; then
     if [[ "${Job:tarCommandToGlobalDir}" != "" ]]; then 
         
         # tar local folder to global dir  (name it like the host name $HOSTNAME or if not defined use $HOME)
-        echo "$ES Tar ${Job:localDir}  --->  ${Job:globalDir} "
+        echo "$(ES) Tar ${Job:localDir}  --->  ${Job:globalDir} "
         cd "${Job:localDir}"
         if [[ "${HOSTNAME}" == "" ]] ; then
             f="${HOME}-localOut.tar"
@@ -36,11 +37,12 @@ if [[ "${Job:localDir}" != "${Job:globalDir}" ]]; then
         fi
         ${Job:tarCommandToGlobalDir} "${Job:globalDir}/$f" -C "${Job:localDir}" ./
     else
-        echo "$ES Copying (options -rpP) ${Job:localDir}  --->  ${Job:globalDir} "
+        echo "$(ES) Copying (options -rpP) ${Job:localDir}  --->  ${Job:globalDir} "
+        ls -al ${Job:localDir}
         cp -rpP ${Job:localDir}/* "${Job:globalDir}/" 
     fi
     
-    rm -rf "${Job:localDir}"
+    rm -rf "${Job:localDir}/*"
 fi
 
 exit 0

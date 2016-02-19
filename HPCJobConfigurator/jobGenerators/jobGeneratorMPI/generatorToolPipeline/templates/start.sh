@@ -8,8 +8,10 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-    
+function currTime(){ date +"%H:%M:%S" }
+function ES(){ echo "$(currTime) :: start.sh: " }
 
+    
 yell() { echo "$0: $*" >&2; }
 die() { yell "$*"; exit 111; }
 try() { "$@" || die "cannot $*"; }
@@ -32,7 +34,7 @@ if [[ "${Cluster:mailAddress}" != "" ]] ;  then
     cat $logFile | mail -s "Job: ${Job:jobName} has started" ${Cluster:mailAddress}
 fi
 
-echo "Make global dir ${Job:globalDir}" >> $logFile 2>&1 
+echo "$(ES) Make global dir ${Job:globalDir}" >> $logFile 2>&1 
 try mkdir -p "${Job:globalDir}"
 
 
