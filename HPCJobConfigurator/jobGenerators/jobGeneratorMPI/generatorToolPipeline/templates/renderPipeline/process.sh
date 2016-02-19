@@ -8,8 +8,8 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){ date +"%H:%M:%S" }
-function ES(){ echo "$(currTime) :: process.sh: Rank: ${Job:processIdxVariabel}" }
+function currTime(){ date +"%H:%M:%S.%3N"; }
+function ES(){ echo "$(currTime) :: process.sh: Rank: ${Job:processIdxVariabel}"; }
 
 executionDir=$(pwd)
 

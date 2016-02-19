@@ -8,8 +8,8 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){ date +"%H:%M:%S" }
-function ES(){ echo "$(currTime) :: start.sh: " }
+function currTime(){ date +"%H:%M:%S.%3N"; }
+function ES(){ echo "$(currTime) :: start.sh: "; }
 
     
 yell() { echo "$0: $*" >&2; }

@@ -9,8 +9,8 @@
 # =====================================================================
 
  
-function currTime(){ date +"%H:%M:%S" }
-function ES(){ echo "$(currTime) :: end.sh: " }
+function currTime(){ date +"%H:%M:%S.%3N" ; }
+function ES(){ echo "$(currTime) :: end.sh: "; }
 
 
 if [[ "${Cluster:mailAddress}" != "" ]];  then
