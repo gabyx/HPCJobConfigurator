@@ -68,10 +68,10 @@ function cleanup(){
     echo "Execute CleanUpCommand ${Pipeline:cleanUpCommand}"
     cd ${executionDir}
     ${Pipeline:cleanUpCommand}
-    if [[ ${stage} -ge 1 ]]; then
-      executeFileValidation
-      echo "$(ES) fileValidation exitStatus: $?"
-    fi
+    #if [[ ${stage} -ge 1 ]]; then
+      #executeFileValidation
+      #echo "$(ES) fileValidation exitStatus: $?"
+    #fi
     echo "$(ES) cleanup finished ========"
 }
 

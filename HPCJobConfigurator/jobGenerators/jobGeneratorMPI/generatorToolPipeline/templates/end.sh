@@ -9,7 +9,7 @@
 # =====================================================================
 
 function currTime(){ date +"%H:%M:%S.%3N"; }
-function ES(){ echo "$(currTime) :: process.sh: Rank: ${Job:processIdxVariabel}"; }
+function ES(){ echo "$(currTime) :: end.sh: Rank: ${Job:processIdxVariabel}"; }
 
 logFile="${Job:scriptDir}/endLog.log"
 > $logFile
@@ -18,31 +18,6 @@ logFile="${Job:scriptDir}/endLog.log"
 yell() { echo "$0: $*" >&2; }
 die() { yell "$*"; exit 111; }
 try() { "$@" || die "cannot $*"; }
-
-
-#  Validate all files in process folder
-#  each process validates 
-#
-function executeFileValidationPerProcess(){
-    # assemble pipeline status
-    PYTHONPATH=${General:configuratorModulePath}
-    export PYTHONPATH
-    
-    # put stdout and stderr into logFile
-    procLogFile="${Pipeline-PostProcess:validationSearchDirProcess}/processLog.log"
-    
-    echo "$(ES) File validation: per Process =============" 1>>${procLogFile}
-    python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \
-        --searchDirNew="${Pipeline-PostProcess:validationSearchDirProcess}" \
-        --pipelineSpecs="${Pipeline:pipelineSpecs}" \
-        --validateOnlyLastModified=True \
-        --output="${Pipeline-PostProcess:validationInfoFileProcess}" 1>>${procLogFile} 2>&1
-    
-    echo "$(ES) ==========================================" 1>>${procLogFile}
-        
-    return $?
-}
-
 
 
 # Collects all FileInfos in each Process folder
@@ -94,7 +69,7 @@ executeFilevalidationAll(){
 # parallel validation ==================================================
 
 # validate file in global process folder -> FileInfos per Process
-# mpirun -np ${Cluster:nProcesses} executeFileValidationPerProcess
+mpirun -np ${Cluster:nProcesses} ${TemplatesOut:endPerProcess}
 
 # combine FileInfos into one
 executeFilevalidation
