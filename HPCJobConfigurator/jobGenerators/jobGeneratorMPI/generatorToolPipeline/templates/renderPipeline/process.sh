@@ -8,7 +8,10 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-alias currTime='date +"%H:%M:%S"'
+function currTime(){
+    date +"%H:%M:%S"
+}
+
 ES="$(currTime) :: process.sh: Rank: ${Job:processIdxVariabel}:"
 
 
