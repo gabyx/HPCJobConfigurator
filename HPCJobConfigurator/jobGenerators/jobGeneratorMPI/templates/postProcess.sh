@@ -38,7 +38,6 @@ if [[ "${Job:localDir}" != "${Job:globalDir}" ]]; then
         ${Job:tarCommandToGlobalDir} "${Job:globalDir}/$f" -C "${Job:localDir}" ./
     else
         echo "$(ES) Copying (options -rpP) ${Job:localDir}  --->  ${Job:globalDir} "
-        ls -al ${Job:localDir}
         cp -rpP ${Job:localDir}/* "${Job:globalDir}/" 
     fi
     
