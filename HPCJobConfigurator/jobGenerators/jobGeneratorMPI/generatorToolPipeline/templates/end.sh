@@ -29,11 +29,11 @@ function executeFileValidationPerProcess(){
     export PYTHONPATH
     
     # put stdout and stderr into logFile
-    procLogFile="${Pipeline-PostProcess:validationSearchDirProcesses}/processLog.log"
+    procLogFile="${Pipeline-PostProcess:validationSearchDirProcess}/processLog.log"
     
     echo "$(ES) File validation: per Process =============" 1>>${procLogFile}
     python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \
-        --searchDirNew="${Pipeline-PostProcess:validationSearchDirProcesses}" \
+        --searchDirNew="${Pipeline-PostProcess:validationSearchDirProcess}" \
         --pipelineSpecs="${Pipeline:pipelineSpecs}" \
         --validateOnlyLastModified=True \
         --output="${Pipeline-PostProcess:validationInfoFileProcess}" 1>>${procLogFile} 2>&1
@@ -55,7 +55,7 @@ executeFilevalidation(){
     
     echo "$(ES) File validation: combine from Process ====" 1>>${logFile}
     python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \
-        --valFileInfoGlobNew "${Pipeline-PostProcess:validationInfoFilesProcessesGlob}" \
+        --valFileInfoGlobNew "${Pipeline-PostProcess:validationInfoFilesCombineGlob}" \
         --valFileInfoGlobOld "${Pipeline-PreProcess:validationInfoFile}" \
         --pipelineSpecs="${Pipeline:pipelineSpecs}" \
         --validateOnlyLastModified=True \
