@@ -8,8 +8,9 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
+alias currTime='date +"%H:%M:%S"'
+ES="$(currTime) :: process.sh: Rank: ${Job:processIdxVariabel}:"
 
-ES="process.sh: Rank: ${Job:processIdxVariabel}:"
 
 executionDir=$(pwd)
 
@@ -63,15 +64,16 @@ function cleanup(){
         cleaningUp="True"
     fi
     
-    echo "$ES do cleanup! =============" 
+    echo "$ES do cleanup! ============= $(currTime)" 
+    echo 
     echo "Execute CleanUpCommand ${Pipeline:cleanUpCommand}"
     cd ${executionDir}
     ${Pipeline:cleanUpCommand}
-    if [[ ${stage} -eq 1 ]]; then
+    if [[ ${stage} -ge 1 ]]; then
       executeFileValidation
       echo "$ES fileValidation exitStatus: $?"
     fi
-    echo "$ES cleanup finished ========"
+    echo "$ES cleanup finished ======== $(currTime)"
 }
 
 function ignoreAllSignals(){

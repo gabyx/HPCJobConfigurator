@@ -8,8 +8,8 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-
-ES="launch.sh:"
+alias currTime='date +"%H:%M:%S"'
+ES="$(currTime) :: launch.sh:"
 
 # Trick the batch system to see this script as an MPI
 # the commands below with /usr/bin/time
