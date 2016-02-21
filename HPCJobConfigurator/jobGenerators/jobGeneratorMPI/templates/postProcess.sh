@@ -41,7 +41,7 @@ if [[ "${Job:localDir}" != "${Job:globalDir}" ]]; then
         cp -rpP ${Job:localDir}/* "${Job:globalDir}/" 
     fi
     
-    rm -rf "${Job:localDir}/*"
+    rm -rf "${Job:localDir}"
 fi
 
 exit 0
