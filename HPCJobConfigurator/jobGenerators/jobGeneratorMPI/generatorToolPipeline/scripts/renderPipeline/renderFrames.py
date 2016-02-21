@@ -29,9 +29,9 @@ from HPCJobConfigurator.jobGenerators import importHelpers as iH
 from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 
 
-def headerStr(){
+def headerStr():
   return datetime.datetime.now().time().isoformat() + " :: renderFrames.py: "
-}
+
 
 
 class MyOptParser(ArgumentParser):
@@ -49,16 +49,20 @@ def shutDownHandler(signum,frame):
   if not shutDown:
     
     shutDown=True
-    print(headerStr() + "catched signal: ", signum)
+    print(headerStr() + "catched signal: %i" % signum)
+    sys.stdout.flush()
     if subProcess is not None:
-      print(headerStr() + "send SIGTERM to pid: ", subProcess.pid);
+      print(headerStr() + "send SIGTERM to pid: %i" % subProcess.pid);
+      sys.stdout.flush()
       try:
         subProcess.send_signal(signal.SIGTERM)
       except OSError as err:
-        print(headerStr() + "could not send signal to subProcess, probably already terminated"); 
+        print(headerStr() + "could not send signal to subProcess, probably already terminated");
+        sys.stdout.flush() 
         
   else:
     print(headerStr() + "ignoring catched signal: %i, shutdown flag already set" % signum)
+    sys.stdout.flush()
     return
     
   
