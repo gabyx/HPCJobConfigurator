@@ -219,6 +219,26 @@ def loadValidationFiles(globExpr):
           
   return valDataAll, valFiles
 
+def printSummary(finalFiles, pipeLineTools, printDetails=True):
+
+    tools=dict( [ (tool,{"finished": 0 "recover" : 0}) for tool in pipelineTools.keys() ] )
+    
+    print("Validatation summary ===============")
+    for f in finalFiles:
+        if printDetails:
+            print("File: %s, status: %s" % (f["absPath"],f["status"]))
+        
+        t = f["tool"]
+        if f["status"] == "finished":
+            tools[t]["finished"] += 1
+        elif f["status"] == "recover":
+            tools[t]["recover"] += 1
+            
+    for t,count in tools.items():
+        print("Tool: %s, file count: \n\tfinished: %i\n\trecover: %i", (t, count["finished"], count["recover"]))
+        
+    print("====================================")  
+           
 def preferGlobalPaths(valDataAll):
     """ The absPath might point to an inexistent file, replace by globalPath """
     for valInfo in valDataAll.values():
@@ -314,7 +334,7 @@ def main():
         # search files ============================================================================
         if opts.searchDirNew is not None:
             print("Validate all files in: %s with pipeLineSpecs: %s" % (opts.searchDirNew , opts.pipelineSpecs) )
-            allFiles = searchFiles(opts.searchDirNew, opts, fileValidationSpecs,fileValidationTools,pipelineTools)
+            allFiles, proc = searchFiles(opts.searchDirNew, opts, fileValidationSpecs,fileValidationTools,pipelineTools)
             for ha, f in allFiles.items():
               if ha in valDataAllNew:
                   print("""WARNING: File %s already found in validation data set 
@@ -362,6 +382,8 @@ def main():
         # make final list
         finalFiles = [ f for f in valDataAllNew.values() ]
         
+        printSummary(finalFiles,pipelineTools,False)
+        
         print("Make output validation file")
         f = open(opts.output,"w+")
         cF.jsonDump(finalFiles,f, sort_keys=True)
@@ -381,7 +403,7 @@ def main():
             
             for f in finalFiles:
                 h = f["hash"]
-                p = os.path.relpath(f["absPath"],start=finished)
+                p = os.path.relpath(f["absPath"],start=paths[f["status"]])
                 filename = os.path.basename(p)
                 head,ext = os.path.splitext(filename)
                 
