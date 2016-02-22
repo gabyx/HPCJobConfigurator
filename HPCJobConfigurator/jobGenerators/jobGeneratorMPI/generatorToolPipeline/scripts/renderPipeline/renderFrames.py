@@ -17,7 +17,7 @@ if sys.version_info[0] != 3:
     exit(1)
 
 
-import os, subprocess,traceback, signal
+import os, subprocess,traceback, signal ,datetime
 from subprocess import CalledProcessError
 
 from argparse import ArgumentParser
@@ -27,6 +27,11 @@ from attrdict import AttrMap
 
 from HPCJobConfigurator.jobGenerators import importHelpers as iH
 from HPCJobConfigurator.jobGenerators import commonFunctions as cF
+
+
+def headerStr():
+  return datetime.datetime.now().time().isoformat() + " :: renderFrames.py: "
+
 
 
 class MyOptParser(ArgumentParser):
@@ -39,21 +44,28 @@ subProcess = None
 shutDown = False
 
 def shutDownHandler(signum,frame):
-  global shutDown
+  global shutDown, subProcess
+  
   if not shutDown:
+    
     shutDown=True
+    print(headerStr() + "catched signal: %i" % signum)
+    sys.stdout.flush()
+    if subProcess is not None:
+      print(headerStr() + "send SIGTERM to pid: %i" % subProcess.pid);
+      sys.stdout.flush()
+      try:
+        subProcess.send_signal(signal.SIGTERM)
+      except OSError as err:
+        print(headerStr() + "could not send signal to subProcess, probably already terminated");
+        sys.stdout.flush() 
+        
   else:
-    print("renderFrames.py: ignoring catched signal: , shutdown already ongoing", signum)
+    print(headerStr() + "ignoring catched signal: %i, shutdown flag already set" % signum)
+    sys.stdout.flush()
     return
     
-  print("renderFrames.py: catched signal: ", signum)
-  if subProcess is not None and not subProcess.poll():
-      print("renderFrames.py: send SIGTERM to pid: ", subProcess.pid)
-      sys.stdout.flush()
-      os.kill(subProcess.pid, signal.SIGTERM)
-      os.waitpid(subProcess.pid,0)
   
-  sys.exit(128+signum)
   
 # we catch SIGINT/SIGUSR2/SIGTERM which all aboard the rendering
 signal.signal(signal.SIGINT, shutDownHandler)
@@ -62,7 +74,7 @@ signal.signal(signal.SIGTERM, shutDownHandler)
 
 def main():
     
-    global subProcess
+    global subProcess,shutdown
     
     parser = MyOptParser()
     
@@ -88,21 +100,26 @@ def main():
             
             for f in frames:
               
+                if shutDown:
+                  break
+                  
                 print("Render frame: %s " % f["inputFile"])
                 command = opts.renderCommand.split(" ") + [f["inputFile"]]
                 print("Command: %s" % str(" ".join(command)))
-
-                try:
-                    sys.stdout.flush()
-                    subProcess = subprocess.Popen(command, stderr=subprocess.STDOUT)
-                    subProcess.wait()
-                    subProcess = None
-                    sys.stdout.flush()
-                except Exception as c:
-                    subProcess = None
-                    print("Rendering Process Error: for file: %s with render output: %s " % (f,c.output) )
-                    print("Continue to next frame ...")
+                sys.stdout.flush()
                 
+                try:
+                  subProcess = subprocess.Popen(command, stderr=subprocess.STDOUT)
+                  # Waiting for process
+                  subProcess.wait()
+                  subProcess = None
+                  
+                except Exception as c:
+                  raise NameError("Rendering Process Error: for file: %s with render output: %s " % (f,c.output) )
+                  
+        if shutDown:
+            print("Render Loop shutdown")
+        
         print("============================================================")        
             
 
