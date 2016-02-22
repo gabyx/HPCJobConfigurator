@@ -219,7 +219,7 @@ def loadValidationFiles(globExpr):
           
   return valDataAll, valFiles
 
-def printSummary(finalFiles, pipeLineTools, printDetails=True):
+def printSummary(finalFiles, pipelineTools, printDetails=False):
 
     tools=dict( [ (tool,{"finished": 0 "recover" : 0}) for tool in pipelineTools.keys() ] )
     
