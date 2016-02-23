@@ -299,8 +299,7 @@ def recoverFrames(opts,allFrames,framesPerIdx, pipelineTools):
                     else:
                         outFileProp["cpFile"] = None
                     
-                    
-                    
+
                 # if all output files are finished -> tool is finished
                 if finishedOutFiles == len(tool["outputFiles"]):
                     
@@ -378,7 +377,7 @@ def main():
         
         # tool1 ---> tool2 ----> tool3
         #                        : dependency on tool2
-        #             :tool3 is parent
+        #            :tool3 is parent
                                  
         # define parents and dependencies for all tools
         for toolName,tool in pipelineTools.items():
