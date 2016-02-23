@@ -235,7 +235,7 @@ def printSummary(finalFiles, pipelineTools, printDetails=False):
             tools[t]["recover"] += 1
             
     for t,count in tools.items():
-        print("Tool: %s, file count: \n\tfinished: %i\n\trecover: %i", (t, count["finished"], count["recover"]))
+        print("Tool: %s, file count: \n\tfinished: %i\n\trecover: %i" % (t, count["finished"], count["recover"]))
         
     print("====================================")  
            
