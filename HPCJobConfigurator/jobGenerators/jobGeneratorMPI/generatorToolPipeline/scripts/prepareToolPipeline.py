@@ -245,12 +245,10 @@ def recoverFrames(opts,allFrames,framesPerIdx, pipelineTools):
             #else:
             # if no parent given, dont do anything
 
-        
-    
     # get all file info
     if opts.validationFileInfo:
         print("Setup recovery from file info===============================")
-        print("Checkpoint files: %s", opts.validationFileInfo)
+        print("Using validation file: %s", opts.validationFileInfo)
         checkpointFiles = cF.jsonLoad(opts.validationFileInfo);
         
         cpFiles = { "hash": {}, "all" : []}
@@ -276,7 +274,7 @@ def recoverFrames(opts,allFrames,framesPerIdx, pipelineTools):
         for frameIdx,frame in framesPerIdx.items():
             finished = False;
             
-            for toolName,tool in frame["tools"].items():
+            for toolName,tool in frame["tools"].items():w
                 
                 # if there are checkpoint files corresponding to outputfiles of this tool
                 finishedOutFiles = 0
@@ -291,7 +289,7 @@ def recoverFrames(opts,allFrames,framesPerIdx, pipelineTools):
                         absP = cpFile["absPath"]
                         
                         print("Frame: %i " % frameIdx + 
-                        " checkpoint file matched: %s , hash: %s, \n status: %s " % ( absP[:10]+'...'+absP[-20:] if len(absP) > 30 else absP ,ha, cpFile["status"] ))
+                        " checkpoint file matched:\n\t%s\n\thash: %s\n\tstatus: %s " % ( absP[:10]+'...'+absP[-20:] if len(absP) > 70 else absP ,ha, cpFile["status"] ))
                         
                         outFileProp["cpFile"] = cpFile
                         
@@ -378,6 +376,10 @@ def main():
 
         pipelineTools = pipelineSpecs["pipelineTools"]
         
+        # tool1 ---> tool2 ----> tool3
+        #                        : dependency on tool2
+        #             :tool3 is parent
+                                 
         # define parents and dependencies for all tools
         for toolName,tool in pipelineTools.items():
             if "dependencies" not in tool:
@@ -415,7 +417,8 @@ def main():
         recoverFrames(opts,allFrames,framesPerIdx,pipelineTools)
         #======================================================================
                   
-        # remove all frames which are completely finished (all tools with no parents are finished, means completely finished)
+        # make a list of all frames which are not-completely finished 
+        # (that are frames where all tools with no parent (the last one) are not finished, we need  at least one )
         notcompleted = lambda frame:   sum( 1 if frame["tools"][toolName]["status"] != STATUS_FINISHED 
                                                 else 0 for toolName,tool in pipelineTools.items() if len(tool["parents"])==0 ) > 0
         framesCount = len(allFrames);
@@ -423,10 +426,7 @@ def main():
         framesToDistribute = list(filter(notcompleted, framesToDistribute))
         print("Removed %d finished frames!" % (framesCount - len(allFrames)) )
         
-        
-    
-            
-        
+
         #count number of frames to render
         totalFrames = len(framesToDistribute);
         print("Number of frames to compute %i" % totalFrames)
