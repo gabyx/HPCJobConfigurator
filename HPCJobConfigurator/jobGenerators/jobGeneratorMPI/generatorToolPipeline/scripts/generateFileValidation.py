@@ -70,7 +70,7 @@ def searchFiles(searchDir,opts,fileValidationSpecs,fileValidationTools,pipelineT
         for file in files:
             
             filePath = os.path.realpath(os.path.join(dirpath, file))
-            print(os.path.join(dirpath, file))
+            #print(os.path.join(dirpath, file))
             # try to match path with all regexes till one matches:
             for specIdx, spec in enumerate(fileValidationSpecs):
                 
