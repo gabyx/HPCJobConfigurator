@@ -274,7 +274,7 @@ def recoverFrames(opts,allFrames,framesPerIdx, pipelineTools):
         for frameIdx,frame in framesPerIdx.items():
             finished = False;
             
-            for toolName,tool in frame["tools"].items():w
+            for toolName,tool in frame["tools"].items():
                 
                 # if there are checkpoint files corresponding to outputfiles of this tool
                 finishedOutFiles = 0
