@@ -80,7 +80,7 @@ Lets look at some extraction of the two ``.ini`` files above:
 jobName = MyDataVisualization
 mailAddress = user@mail.com
 ...
-```
+```Bash
 **[JobConfig.ini](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/JobConfig.ini):**
 ```
 ...
