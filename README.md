@@ -30,7 +30,7 @@ for your needs.
 
 Lets look for example at the template ``start.sh``:
 
-```
+```bash
 function currTime(){ date +"%H:%M:%S.%3N"; }
 function ES(){ echo "$(currTime) :: start.sh: "; }
 
@@ -47,10 +47,12 @@ try mkdir -p "${Job:globalDir}"
 
 exit 0
 ```
+
 All ``${section:option}`` strings (template strings) are replaced by the specified values in ``Launch.ini`` and **especially** ``JobConfig.ini``. So when the jobs are configured the template strings are replaced and the file ``start.sh`` is by default written to the job folder.
 
 #### A simple example
 The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job which has the following folder structure
+
 ```
 ├── JobConfig.ini                # Job configuration .ini file 
 ├── Launch.ini                   # configureJob.py .ini file
@@ -61,28 +63,34 @@ The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/examp
 └── templates                    # two template files which are configured
     ├── Input1.xml
     └── Input2.txt
-````
-The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job can be configured by 
 ```
+
+The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job can be configured by 
+
+```bash
 cd examples/simple
 export MYGLOBALSCRATCH_DIR="$(pwd)/scratch/global"
 export MYLOCALSCRATCH_DIR="$(pwd)/scratch/local"
 python3 ../../HPCJobConfigurator/configureJob.py -x JobConfig.ini 
 ```
+
 which configures one job under ``examples/simple/cluster/Launch_MyDataVisualization.0``.
 
 Lets look at some extraction of the two ``.ini`` files above:
 
-**[Launch.ini](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/Launch.ini):**  
-```
+**[Launch.ini](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/Launch.ini):**
+
+```python
 ...
 [Cluster]
 jobName = MyDataVisualization
 mailAddress = user@mail.com
 ...
-```Bash
-**[JobConfig.ini](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/JobConfig.ini):**
 ```
+
+**[JobConfig.ini](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/JobConfig.ini):**
+
+```python
 ...
 [Job]
 globalDir            = ENV::MYGLOBALSCRATCH_DIR/${Cluster:jobName}/${Cluster:jobName}.${Job:jobIdx}
@@ -113,6 +121,7 @@ exeCommand = echo "Input1: " ; cat ${TemplatesOut:myOtherFancyTemplate}; echo "I
 dataType = grid
 ...
 ```
+
 As can be seen, the variables (in the form ``${section:option}``) in both ``.ini`` files are interpolated, and can be used all over the place.
 Also environment variables are possible, specified by the syntax ``ENV::Variable``.
 
