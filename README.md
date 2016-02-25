@@ -80,7 +80,7 @@ Lets look at some extraction of the two ``.ini`` files above:
 
 **[Launch.ini](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/Launch.ini):**
 
-```python
+```Ini
 ...
 [Cluster]
 jobName = MyDataVisualization
@@ -90,7 +90,7 @@ mailAddress = user@mail.com
 
 **[JobConfig.ini](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/JobConfig.ini):**
 
-```python
+```Ini
 ...
 [Job]
 globalDir            = ENV::MYGLOBALSCRATCH_DIR/${Cluster:jobName}/${Cluster:jobName}.${Job:jobIdx}
