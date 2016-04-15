@@ -176,7 +176,7 @@ class Generator:
         self.updateNonInterpolatedOpts(self.nonInterpolatedOpts, nonInterpolatedOpts) 
 
         # save the arguments, which have been passed to the submit.py script!
-        self.submitScriptArgs = config["General"]["submitScriptArgs"]
+        self.configureScriptArgs = config["General"]["configureScriptArgs"]
         
          # temporary copy (no interpolation anymore in this configs))
         self.cCluster   = copy.deepcopy(config["Cluster"])
@@ -380,5 +380,5 @@ class Generator:
       
     def writeJobScriptArgs(self,file):
         f = open(file,"w")
-        f.write(self.submitScriptArgs)
+        f.write(self.configureScriptArgs)
   

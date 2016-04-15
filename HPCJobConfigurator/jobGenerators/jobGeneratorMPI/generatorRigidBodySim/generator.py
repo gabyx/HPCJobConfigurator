@@ -42,7 +42,7 @@ class RigidBodySim(GeneratorMPI):
     
     def printOptions(self):
         super(RigidBodySim,self).printOptions();
-        CE.printKeyMessage("Scenefile","%s" % self.cRigidBody.sceneFile)
+        #CE.printKeyMessage("Scenefile","%s" % self.cRigidBody.sceneFile)
         
     def generate(self):
 
@@ -66,10 +66,6 @@ class RigidBodySim(GeneratorMPI):
             self.config["Job"]["submitCommand"] = " ".join([self.config["Cluster"]["submitCommand"] , 
                         (configDicts[-1].Cluster.submitArgsChainJob if jobIdx > self.cCluster.jobIdxParent+1 else "") , self.config["Job"]["submitArgs"]])            
             
-            # define this jobs scene file path (it is not yet generated)
-            filename , ext = os.path.splitext(os.path.basename(self.config["RigidBodySim"]["sceneFileTemplate"]))
-            self.config["RigidBodySim"]["sceneFile"] =  os.path.join( self.config["Job"]["scriptDir"] , "%s%i%s" % (filename,jobIdx,ext)  ) 
-            
             
             # final interpolation of all automatic generated options and conversion to self.configDict
             # and checking of feasible values before template writting
@@ -87,7 +83,7 @@ class RigidBodySim(GeneratorMPI):
 
                 # make job script dir (if exists, try to remove it, if no -> abort)
                 cF.makeDirectory( self.cJob.scriptDir, name="Job script dir", defaultMakeEmpty=False, interact= self.cCluster.interact)
-                self.writeJobScriptArgs( os.path.join(self.cJob.scriptDir, "submitScriptArgs.txt" ) )
+                self.writeJobScriptArgs( os.path.join(self.cJob.scriptDir, "configureScriptArgs.txt" ) )
                 
                 
                 # write all templates
