@@ -133,7 +133,7 @@ The ``myOtherFancyTemplate2`` is a template where the string in ``{...}`` is par
 
 If you look at the output folder ``examples/simple/cluster/Launch_MyDataVisualization.0``, you will find all configured scripts, bash scripts to launch the MPI job.
 
-Of course this is only a simple example. A more difficult example is provided by a an Image Correlation Task where each MPI process executes a tool pipeline consisting of some image processing and afterwards some image correlation, this job is explained in the following to give the user more insight how this tool works and how it can be extendet.
+Of course this is only a simple example. A more difficult example is provided by a an Image Correlation Task where each MPI process executes a tool pipeline consisting of some image processing and afterwards some image correlation, this job is explained in the following to give the user more insight how this tool works and how it can be extended.
 
 ## Parallel Image Coorelation Job 
 to be continued
@@ -143,7 +143,7 @@ to be continued
   
   Important stuff to be documented:
   - ${Job:localDir} might only become a valid absolut path if fully expanded by Bash on a cluster (might contain Job specific variable such as $TMPDIR which are not clear at configuration time)
-    However, this is rarely used in practive and absolute paths to the local directory on each node on the cluster is suggested. However, do not store the value ${Job:localDir} in configuration files which are not Bash scripts! If you need localDir hand it to your executable and deal with it.
+    However, this is rarely used in practice and absolute paths to the local directory on each node on the cluster is suggested. When using env. variables inside ${Job:localDir}, do not store the value ${Job:localDir} in configuration files which are not Bash scripts (because env. variables do not get expanded)! If you need localDir hand it to your executable and deal with it.
     
 
 ## Dependencies
