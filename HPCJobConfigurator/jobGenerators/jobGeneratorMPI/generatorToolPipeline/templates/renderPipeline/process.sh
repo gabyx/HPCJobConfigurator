@@ -139,6 +139,7 @@ processDir=$(pwd)
 logFile="${processDir}/processLog.log"
 #http://stackoverflow.com/a/18462920/293195
 exec 3>&1 1>>${logFile} 2>&1
+# filedescriptor 3 is still connected to the console
 
 stage=0
 echo "$(ES) File Mover =======================================================" 

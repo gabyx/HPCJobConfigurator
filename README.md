@@ -1,10 +1,16 @@
-# Job Configurator for Cluster Computing 
+# Job Configurator for Cluster Computing
 ## Python module to generate highly configurable user-defined jobs for high-performance computing.
 
 If you are doing high performance computing on a linux cluster and are bored from dealing with tons of configurations files for maintaining a parallel job configuration.
 This python module has been developed during research for granular rigid body dynamics where complex and huge parallel MPI jobs needed to be configured in an uniform an reproducable way by using mainly one configuration file which acts as the main config file for the jobs [Link](http://www.zfm.ethz.ch/~nuetzig/?page=research). That included parallel tasks such as visualization, e.g rendering, general rigid body simulations, data analysis and image correlation on the HPC Euler and Brutus at ETH Zürich.
 
 The absolut main advantage of this configurator is the ability to configure and test the job locally on your preferred workstation. The job can be fully launched locally and tested until everything is in place and works as expected and once this is the case it can be configured and submitted to the batch system on the cluster where it should complete sucessfully as well. (75% of the time :v:)
+
+## Activate the HPCJobConfigurator
+To activate the macros in your current shell run
+```bash
+source ./activate
+```
 
 This module is best described with an example:
 ## General Workflow
@@ -14,7 +20,7 @@ The user sets up a job configuration folder ``myJob`` consiting of two files ``L
   - **The ``JobConfig.ini``** is **the main** job configuration file which is used for the job generator type specified at the command line to ``configureJob.py`` or in the ``Launch.ini``.
 
 By using the ``configureJob.py`` script, the user configures the job (or a sequence of jobs) and the configuration files are written commonly to a job specific configuration folder
-``myJob/Launch_myJob.0/`` (or ``myJob/Launch_myJob.0/``,``myJob/Launch_myJob.1/``,... for a sequence of job configurations). What configuration files are written is dependent on the used type of job generator. The job generator is specified in the ``Launch.ini``.  **The job generator is a python class which is loaded and executed.** 
+``myJob/Launch_myJob.0/`` (or ``myJob/Launch_myJob.0/``,``myJob/Launch_myJob.1/``,... for a sequence of job configurations). What configuration files are written is dependent on the used type of job generator. The job generator is specified in the ``Launch.ini``.  **The job generator is a python class which is loaded and executed.**
 
 ### The JobGeneratatorMPI
 The main job generator for HPC tasks is the ``JobGeneratorMPI`` which generates a general launchable MPI task which consists of the following main Bash files executed in the main execution file ``launch.sh`` :
@@ -42,7 +48,7 @@ if [[ "${Cluster:mailAddress}" != "" ]] ;  then
     echo "EOM" | mail -s "Job: ${Job:jobName} has started" "${Cluster:mailAddress}"
 fi
 
-#echo "Make global dir ${Job:globalDir}" 
+#echo "Make global dir ${Job:globalDir}"
 try mkdir -p "${Job:globalDir}"
 
 exit 0
@@ -54,7 +60,7 @@ All ``${section:option}`` strings (template strings) are replaced by the specifi
 The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job which has the following folder structure
 
 ```
-├── JobConfig.ini                # Job configuration .ini file 
+├── JobConfig.ini                # Job configuration .ini file
 ├── Launch.ini                   # configureJob.py .ini file
 ├── data
 │   └── DataVisSettings.json     # some data to be used to configure the templates
@@ -65,13 +71,13 @@ The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/examp
     └── Input2.txt
 ```
 
-The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job can be configured by 
+The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job can be configured by
 
 ```bash
 cd examples/simple
 export MYGLOBALSCRATCH_DIR="$(pwd)/scratch/global"
 export MYLOCALSCRATCH_DIR="$(pwd)/scratch/local"
-python3 ../../HPCJobConfigurator/configureJob.py -x JobConfig.ini 
+python3 ../../HPCJobConfigurator/configureJob.py -x JobConfig.ini
 ```
 
 which configures one job under ``examples/simple/cluster/Launch_MyDataVisualization.0``.
@@ -105,7 +111,7 @@ scriptDir            = ${Cluster:jobGeneratorOutputDir}/${Job:scriptDirName}
 startJob                = ${General:modulePathGenerators}/jobGenerators/jobGeneratorMPI/generatorToolPipeline/templates/start.sh
 # ....
 
-# other templates ...... 
+# other templates ......
 
 myOtherFancyTemplate    = ${General:jobDir}/templates/input1.xml
 
@@ -135,20 +141,20 @@ If you look at the output folder ``examples/simple/cluster/Launch_MyDataVisualiz
 
 Of course this is only a simple example. A more difficult example is provided by a an Image Correlation Task where each MPI process executes a tool pipeline consisting of some image processing and afterwards some image correlation, this job is explained in the following to give the user more insight how this tool works and how it can be extended.
 
-## Parallel Image Coorelation Job 
+## Parallel Image Coorelation Job
 to be continued
 
 
 ## Stuff to Remember:
-  
+
   Important stuff to be documented:
   - ${Job:localDir} might only become a valid absolut path if fully expanded by Bash on a cluster (might contain Job specific variable such as $TMPDIR which are not clear at configuration time)
     However, this is rarely used in practice and absolute paths to the local directory on each node on the cluster is suggested. When using env. variables inside ${Job:localDir}, do not store the value ${Job:localDir} in configuration files which are not Bash scripts (because env. variables do not get expanded)! If you need localDir hand it to your executable and deal with it.
-    
+
 
 ## Dependencies
 python 3, with modules:
-  
+
   - lxml
   - glob2
   - jsonpickle
