@@ -74,10 +74,11 @@ The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/examp
 The [simple](https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/) example job can be configured by
 
 ```bash
+source ./activate
 cd examples/simple
 export MYGLOBALSCRATCH_DIR="$(pwd)/scratch/global"
 export MYLOCALSCRATCH_DIR="$(pwd)/scratch/local"
-python3 ../../HPCJobConfigurator/configureJob.py -x JobConfig.ini
+configJob -x JobConfig.ini
 ```
 
 which configures one job under ``examples/simple/cluster/Launch_MyDataVisualization.0``.

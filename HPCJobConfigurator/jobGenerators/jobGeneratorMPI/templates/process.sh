@@ -42,16 +42,16 @@ function printTime(){
 function launchInForeground(){
   start=$(date +%s.%N) ;
   "$@"
-  res=$?      
+  res=$?
   end=$(date +%s.%N) ;
   printTime $start $end ;
-  return $res  
+  return $res
 }
 
 function shutDownHandler() {
     # ignore all signals
     trap_with_arg ignoreAllSignals SIGINT SIGUSR1 SIGUSR2 SIGTERM SIGPIPE
-    
+
     signalReceived="True"
     #if [[ "${cleaningUp}" == "False" ]]; then
       #echo "$(ES) Signal $1 catched, cleanup and exit."
@@ -95,6 +95,6 @@ echo "$(ES) make process log file at: ${logFile}"
 exec 3>&1 1>>${logFile} 2>&1
 
 echo "$(ES) starting executable ..."
-${Job:executableCommand}
+tryNoCleanUp ${Job:executableCommand}
 
 exitFunction 0

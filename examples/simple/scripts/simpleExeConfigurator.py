@@ -9,8 +9,8 @@
 
 import os
 
-from HPCJobConfigurator.jobGenerators.importHelpers import ImportHelpers as iH
-from HPCJobConfigurator.jobGenerators.commonFunctions import CommonFunctions as cf
+from HPCJobConfigurator.jobGenerators import importHelpers as iH
+from HPCJobConfigurator.jobGenerators import commonFunctions as cf
 from HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generator import GeneratorMPI
 
 class SimpleExeGenerator(GeneratorMPI):

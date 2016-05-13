@@ -178,7 +178,7 @@ else
     echo "Change directory to ${Pipeline:converterExecutionDir}" 
     
     cd ${Pipeline:converterExecutionDir}
-    begin=$(date +"%s")
+
     try launchInForeground ${Pipeline:executableConverter} renderer \
         -i $converterProcessFile \
         -r renderman \
