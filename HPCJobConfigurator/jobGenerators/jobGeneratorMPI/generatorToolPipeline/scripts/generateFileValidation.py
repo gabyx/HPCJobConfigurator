@@ -70,7 +70,7 @@ def searchFiles(searchDir,opts,fileValidationSpecs,fileValidationTools,pipelineT
         for file in files:
             
             filePath = os.path.realpath(os.path.join(dirpath, file))
-            print(os.path.join(dirpath, file))
+            #print(os.path.join(dirpath, file))
             # try to match path with all regexes till one matches:
             for specIdx, spec in enumerate(fileValidationSpecs):
                 
@@ -221,7 +221,7 @@ def loadValidationFiles(globExpr):
 
 def printSummary(finalFiles, pipelineTools, printDetails=False):
 
-    tools=dict( [ (tool,{"finished": 0 "recover" : 0}) for tool in pipelineTools.keys() ] )
+    tools=dict( [ (tool,{"finished": 0, "recover" : 0}) for tool in pipelineTools.keys() ] )
     
     print("Validatation summary ===============")
     for f in finalFiles:
@@ -235,7 +235,7 @@ def printSummary(finalFiles, pipelineTools, printDetails=False):
             tools[t]["recover"] += 1
             
     for t,count in tools.items():
-        print("Tool: %s, file count: \n\tfinished: %i\n\trecover: %i", (t, count["finished"], count["recover"]))
+        print("Tool: %s, file count: \n\tfinished: %i\n\trecover: %i" % (t, count["finished"], count["recover"]))
         
     print("====================================")  
            
@@ -334,7 +334,7 @@ def main():
         # search files ============================================================================
         if opts.searchDirNew is not None:
             print("Validate all files in: %s with pipeLineSpecs: %s" % (opts.searchDirNew , opts.pipelineSpecs) )
-            allFiles, proc = searchFiles(opts.searchDirNew, opts, fileValidationSpecs,fileValidationTools,pipelineTools)
+            allFiles = searchFiles(opts.searchDirNew, opts, fileValidationSpecs,fileValidationTools,pipelineTools)
             for ha, f in allFiles.items():
               if ha in valDataAllNew:
                   print("""WARNING: File %s already found in validation data set 

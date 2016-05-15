@@ -1,0 +1,22 @@
+#!/bin/bash
+# source this file to define handy macros to access
+# the simulators of the GRSFramework
+
+
+if [[ ! -v GRSF_REPO_BUILD_DIR ]]; then
+  echo "Define GRSF_REPO_BUILD_DIR variable first!"
+fi
+
+
+
+export HPCJOBCONFIGURATOR_REPO_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+export HPCJOBCONFIGURATOR_DIR=${HPCJOBCONFIGURATOR_REPO_DIR}
+export HPCJOBCONFIGURATOR_MODULE_DIR=${HPCJOBCONFIGURATOR_REPO_DIR}/HPCJobConfigurator
+
+alias configJob=$HPCJOBCONFIGURATOR_MODULE_DIR/configureJob.py
+
+echo -e "HPCJobConfigurator:: ================================================"
+echo -e "\tCommands available:\n\tconfigJob: execute the configureJob.py script to configure a job (run inside a job folder)"
+echo -e "\tEnv. Variables: \n\tHPCJOBCONFIGURATOR_REPO_DIR: repository of the HPCJobConfigurator. \n\tHPCJOBCONFIGURATOR_DIR: Directory where the python configurator module 'HPCJobConfigurator' is located.\n\tThis path you should add to the python path, to find this module. \n\tHPCJOBCONFIGURATOR_MODULE_DIR: The directory of the python module."
+echo -e "====================================================================="

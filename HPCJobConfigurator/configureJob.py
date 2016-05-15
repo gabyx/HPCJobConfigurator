@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # =====================================================================
 #  HPClusterJobConfigurator
 #  Copyright (C) 2014 by Gabriel Nützi <gnuetzi (at) gmail (dot) com>
@@ -7,7 +9,6 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-#!/usr/bin/env python
 import sys,os
 import os.path as path
 import argparse
@@ -44,7 +45,11 @@ from HPCJobConfigurator.jobGenerators import importHelpers as iH
 from HPCJobConfigurator.jobGenerators import commonFunctions as cF
 from HPCJobConfigurator.jobGenerators import configuratorExceptions as CE
 
-def submit(configFile="Launch.ini", overwriteArgs = None):
+def configJob(configFile="Launch.ini", overwriteArgs = None, colorOutput=False):
+    
+    if colorOutput:
+      # initialize terminal colors
+      CE.doColoredOutput()
     
     p =  cap.ArgParser( default_config_files=[configFile])
     p.optionxform = str # dont make names lower case!
@@ -105,9 +110,12 @@ def submit(configFile="Launch.ini", overwriteArgs = None):
         dic.update(overwriteArgs)
     
     
-    submitInternal(dic)   
+    configJobInternal(dic)  
+    
+    if colorOutput:
+      CE.undoColoredOutput() 
 
-def submitInternal(config):
+def configJobInternal(config):
     
     # Get cluster config values
     # Cluster section is ignored, add it again
@@ -125,7 +133,7 @@ def submitInternal(config):
                          "configuratorModulePath" : configuratorModulePath,
                          "currentWorkDir" : os.getcwd(),
                          "jobDir" : os.path.dirname(os.path.abspath(config.Cluster.jobGeneratorConfig)),
-                         "submitScriptArgs" : " ".join(sys.argv)
+                         "configureScriptArgs" : " ".join(sys.argv)
                          }
                          
     config.Cluster.jobGeneratorOutputDir = os.path.abspath(config.Cluster.jobGeneratorOutputDir )
@@ -143,8 +151,5 @@ def submitInternal(config):
 
 
 if __name__ == "__main__":
-   # initialize terminal colors
-   CE.doColoredOutput()
-   err=submit()
-   CE.undoColoredOutput()
+   err=configJob(colorOutput=True)
    sys.exit(err);

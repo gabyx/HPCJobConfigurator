@@ -85,7 +85,7 @@ class ToolPipeline(GeneratorMPI):
                 # make job script dir (if exists, try to remove it, if no -> abort)
                 cF.makeDirectory( self.cJob.scriptDir, name="Job script dir", defaultMakeEmpty=False, interact= self.cCluster.interact)
                 
-                self.writeJobScriptArgs( os.path.join(self.cJob.scriptDir, "submitScriptArgs.txt" ) )
+                self.writeJobScriptArgs( os.path.join(self.cJob.scriptDir, "configureScriptArgs.txt" ) )
                 
                 # write all templates
                 self.writeTemplates(self, configDicts);
