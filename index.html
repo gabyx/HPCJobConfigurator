@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>HPCJobConfigurator by gabyx</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>HPCJobConfigurator</h1>
+          <h2>Python module to generate highly configurable user-defined jobs on a high-performance cluster</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/gabyx/HPCJobConfigurator/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/gabyx/HPCJobConfigurator/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/gabyx/HPCJobConfigurator" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a id="job-configurator-for-cluster-computing" class="anchor" href="#job-configurator-for-cluster-computing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Job Configurator for Cluster Computing</h1>
+
+<h2>
+<a id="python-module-to-generate-highly-configurable-user-defined-jobs-for-high-performance-computing" class="anchor" href="#python-module-to-generate-highly-configurable-user-defined-jobs-for-high-performance-computing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Python module to generate highly configurable user-defined jobs for high-performance computing.</h2>
+
+<p>If you are doing high performance computing on a linux cluster and are bored from dealing with tons of configurations files for maintaining a parallel job configuration.
+This python module has been developed during research for granular rigid body dynamics where complex and huge parallel MPI jobs needed to be configured in an uniform an reproducable way by using mainly one configuration file which acts as the main config file for the jobs <a href="http://www.zfm.ethz.ch/%7Enuetzig/?page=research">Link</a>. That included parallel tasks such as visualization, e.g rendering, general rigid body simulations, data analysis and image correlation on the HPC Euler and Brutus at ETH Zürich.</p>
+
+<p>The absolut main advantage of this configurator is the ability to configure and test the job locally on your preferred workstation. The job can be fully launched locally and tested until everything is in place and works as expected and once this is the case it can be configured and submitted to the batch system on the cluster where it should complete sucessfully as well. (75% of the time <img class="emoji" title=":v:" alt=":v:" src="https://assets-cdn.github.com/images/icons/emoji/unicode/270c.png" height="20" width="20" align="absmiddle">)</p>
+
+<h2>
+<a id="activate-the-hpcjobconfigurator" class="anchor" href="#activate-the-hpcjobconfigurator" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Activate the HPCJobConfigurator</h2>
+
+<p>To activate the macros in your current shell run</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">source</span> ./activate</pre></div>
+
+<p>This module is best described with an example:</p>
+
+<h2>
+<a id="general-workflow" class="anchor" href="#general-workflow" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>General Workflow</h2>
+
+<p>The user sets up a job configuration folder <code>myJob</code> consiting of two files <code>Launch.ini</code> and <code>JobConfig.ini</code>.</p>
+
+<ul>
+<li>
+<strong>The <code>Launch.ini</code></strong> is a config file for all command line arguments to the configurator script <code>configureJob.py</code>. It is not so important but handy.</li>
+<li>
+<strong>The <code>JobConfig.ini</code></strong> is <strong>the main</strong> job configuration file which is used for the job generator type specified at the command line to <code>configureJob.py</code> or in the <code>Launch.ini</code>.</li>
+</ul>
+
+<p>By using the <code>configureJob.py</code> script, the user configures the job (or a sequence of jobs) and the configuration files are written commonly to a job specific configuration folder
+<code>myJob/Launch_myJob.0/</code> (or <code>myJob/Launch_myJob.0/</code>,<code>myJob/Launch_myJob.1/</code>,... for a sequence of job configurations). What configuration files are written is dependent on the used type of job generator. The job generator is specified in the <code>Launch.ini</code>.  <strong>The job generator is a python class which is loaded and executed.</strong></p>
+
+<h3>
+<a id="the-jobgeneratatormpi" class="anchor" href="#the-jobgeneratatormpi" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The JobGeneratatorMPI</h3>
+
+<p>The main job generator for HPC tasks is the <code>JobGeneratorMPI</code> which generates a general launchable MPI task which consists of the following main Bash files executed in the main execution file <code>launch.sh</code> :</p>
+
+<ul>
+<li>
+<strong><a href="https://github.com/gabyx/HPClusterJobConfigurator/blob/master/HPCJobConfigurator/jobGenerators/jobGeneratorMPI/templates/start.sh">start.sh</a></strong> : The start script which makes a global output folder (for example on a parallel filesystem) and sends an email to the user to inform him that the job has been started</li>
+<li>
+<strong><a href="https://github.com/gabyx/HPClusterJobConfigurator/blob/master/HPCJobConfigurator/jobGenerators/jobGeneratorMPI/templates/preProcess.sh">preProcess.sh</a></strong> The pre-process script is executed for each node on the cluser (by using <code>mpirun</code> in <code>launch.sh</code>). This pre-process is responsible to setup node specific scratch folders and other stuff, such as copying files to the node locally etc.</li>
+<li>
+<strong><a href="https://github.com/gabyx/HPClusterJobConfigurator/blob/master/HPCJobConfigurator/jobGenerators/jobGeneratorMPI/templates/process.sh">process.sh</a></strong> The main process which is executed for each process on the HPC (by using <code>mpirun</code> in <code>launch.sh</code>)</li>
+<li>
+<strong><a href="https://github.com/gabyx/HPClusterJobConfigurator/blob/master/HPCJobConfigurator/jobGenerators/jobGeneratorMPI/templates/postProcess.sh">postProcess.sh</a></strong> The post-process which does file copies and clean up stuff and runs once for each single node (by using <code>mpirun</code> in <code>launch.sh</code>).</li>
+<li>
+<strong><a href="https://github.com/gabyx/HPClusterJobConfigurator/blob/master/jobGenerators/jobGeneratorMPI/templates/end.sh">end.sh</a></strong> The overall final process which at the end sends the user an email that the job has finished.</li>
+</ul>
+
+<p>Of course,  special jobs need special handling and therefore these scripts are only a guid and be copied and modified
+for your needs.</p>
+
+<p>Lets look for example at the template <code>start.sh</code>:</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-k">function</span> <span class="pl-en">currTime(){</span> date +<span class="pl-s"><span class="pl-pds">"</span>%H:%M:%S.%3N<span class="pl-pds">"</span></span>; }
+<span class="pl-k">function</span> <span class="pl-en">ES(){</span> <span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-s"><span class="pl-pds">$(</span>currTime<span class="pl-pds">)</span></span> :: start.sh: <span class="pl-pds">"</span></span>; }
+
+<span class="pl-en">yell</span>() { <span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$0</span>: <span class="pl-smi">$*</span><span class="pl-pds">"</span></span> <span class="pl-k">&gt;&amp;2</span><span class="pl-k">;</span> }
+<span class="pl-en">die</span>() { yell <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$*</span><span class="pl-pds">"</span></span><span class="pl-k">;</span> <span class="pl-c1">exit</span> 1 <span class="pl-k">;</span> }
+<span class="pl-en">try</span>() { <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$@</span><span class="pl-pds">"</span></span> <span class="pl-k">||</span> die <span class="pl-s"><span class="pl-pds">"</span>cannot <span class="pl-smi">$*</span><span class="pl-pds">"</span></span><span class="pl-k">;</span> }
+
+<span class="pl-k">if</span> [[ <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">${Cluster<span class="pl-k">:</span>mailAddress}</span><span class="pl-pds">"</span></span> <span class="pl-k">!=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span> ]] <span class="pl-k">;</span>  <span class="pl-k">then</span>
+    <span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span>EOM<span class="pl-pds">"</span></span> <span class="pl-k">|</span> mail -s <span class="pl-s"><span class="pl-pds">"</span>Job: <span class="pl-smi">${Job<span class="pl-k">:</span>jobName}</span> has started<span class="pl-pds">"</span></span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">${Cluster<span class="pl-k">:</span>mailAddress}</span><span class="pl-pds">"</span></span>
+<span class="pl-k">fi</span>
+
+<span class="pl-c">#echo "Make global dir ${Job:globalDir}"</span>
+try mkdir -p <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">${Job<span class="pl-k">:</span>globalDir}</span><span class="pl-pds">"</span></span>
+
+<span class="pl-c1">exit</span> 0</pre></div>
+
+<p>All <code>${section:option}</code> strings (template strings) are replaced by the specified values in <code>Launch.ini</code> and <strong>especially</strong> <code>JobConfig.ini</code>. So when the jobs are configured the template strings are replaced and the file <code>start.sh</code> is by default written to the job folder.</p>
+
+<h4>
+<a id="a-simple-example" class="anchor" href="#a-simple-example" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>A simple example</h4>
+
+<p>The <a href="https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/">simple</a> example job which has the following folder structure</p>
+
+<pre><code>├── JobConfig.ini                # Job configuration .ini file
+├── Launch.ini                   # configureJob.py .ini file
+├── data
+│   └── DataVisSettings.json     # some data to be used to configure the templates
+├── scripts
+│   └── simpleExeConfigurator.py # the configurator
+└── templates                    # two template files which are configured
+    ├── Input1.xml
+    └── Input2.txt
+</code></pre>
+
+<p>The <a href="https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/">simple</a> example job can be configured by</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">source</span> ./activate
+<span class="pl-c1">cd</span> examples/simple
+<span class="pl-k">export</span> MYGLOBALSCRATCH_DIR=<span class="pl-s"><span class="pl-pds">"</span><span class="pl-s"><span class="pl-pds">$(</span><span class="pl-c1">pwd</span><span class="pl-pds">)</span></span>/scratch/global<span class="pl-pds">"</span></span>
+<span class="pl-k">export</span> MYLOCALSCRATCH_DIR=<span class="pl-s"><span class="pl-pds">"</span><span class="pl-s"><span class="pl-pds">$(</span><span class="pl-c1">pwd</span><span class="pl-pds">)</span></span>/scratch/local<span class="pl-pds">"</span></span>
+configJob -x JobConfig.ini</pre></div>
+
+<p>which configures one job under <code>examples/simple/cluster/Launch_MyDataVisualization.0</code>.</p>
+
+<p>Lets look at some extraction of the two <code>.ini</code> files above:</p>
+
+<p><strong><a href="https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/Launch.ini">Launch.ini</a>:</strong></p>
+
+<div class="highlight highlight-source-ini"><pre>...
+<span class="pl-en">[Cluster]</span>
+<span class="pl-k">jobName</span> = MyDataVisualization
+<span class="pl-k">mailAddress</span> = user@mail.com
+...</pre></div>
+
+<p><strong><a href="https://github.com/gabyx/HPClusterJobConfigurator/blob/master/example/simple/JobConfig.ini">JobConfig.ini</a>:</strong></p>
+
+<div class="highlight highlight-source-ini"><pre>...
+<span class="pl-en">[Job]</span>
+<span class="pl-k">globalDir</span>            = ENV::MYGLOBALSCRATCH_DIR/${Cluster:jobName}/${Cluster:jobName}.${Job:jobIdx}
+<span class="pl-k">localDir</span>             = ENV::MYLOCALSCRATCH_DIR/${Cluster:jobName}.${Job:jobIdx}
+
+<span class="pl-k">jobName</span>              = ${Cluster:jobName}.${Job:jobIdx}
+<span class="pl-k">scriptDirName</span>        = Launch_${Job:jobName}
+<span class="pl-k">scriptDir</span>            = ${Cluster:jobGeneratorOutputDir}/${Job:scriptDirName}
+
+
+<span class="pl-en">[Templates]</span>
+<span class="pl-k">startJob</span>                = ${General:modulePathGenerators}/jobGenerators/jobGeneratorMPI/generatorToolPipeline/templates/start.sh
+<span class="pl-c"># ....</span>
+
+<span class="pl-c"># other templates ......</span>
+
+<span class="pl-k">myOtherFancyTemplate</span>    = ${General:jobDir}/templates/input1.xml
+
+<span class="pl-k">myOtherFancyTemplate2</span>   = { <span class="pl-s"><span class="pl-pds">"</span>inputFile<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>${General:jobDir}/templates/input2.txt<span class="pl-pds">"</span></span> , <span class="pl-s"><span class="pl-pds">"</span>configurator<span class="pl-pds">"</span></span> : { <span class="pl-s"><span class="pl-pds">"</span>modulePath<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>${General:modulePathConfigurator}/jobGenerators/dictionaryAdjuster.py<span class="pl-pds">"</span></span> , <span class="pl-s"><span class="pl-pds">"</span>moduleName<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>dictionaryAdjuster<span class="pl-pds">"</span></span> , <span class="pl-s"><span class="pl-pds">"</span>className<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>DictionaryAdjuster<span class="pl-pds">"</span></span> }, <span class="pl-s"><span class="pl-pds">"</span>settings<span class="pl-pds">"</span></span> : {<span class="pl-s"><span class="pl-pds">"</span>additionalFiles<span class="pl-pds">"</span></span> : [{<span class="pl-s"><span class="pl-pds">"</span>path<span class="pl-pds">"</span></span>:<span class="pl-s"><span class="pl-pds">"</span>${General:jobDir}/data/DataVisSettings.json<span class="pl-pds">"</span></span> , <span class="pl-s"><span class="pl-pds">"</span>parentName<span class="pl-pds">"</span></span>:<span class="pl-s"><span class="pl-pds">"</span>gaga2<span class="pl-pds">"</span></span>}] } }
+
+<span class="pl-en">[TemplatesOut]</span>
+<span class="pl-k">myOtherFancyTemplate2</span>   = ${Job:scriptDir}/input2.txt
+
+<span class="pl-en">[MySettings]</span>
+
+<span class="pl-k">exeCommand</span> = echo <span class="pl-s"><span class="pl-pds">"</span>Input1: <span class="pl-pds">"</span></span> <span class="pl-c">; cat ${TemplatesOut:myOtherFancyTemplate}; echo "Input2: " ; cat ${TemplatesOut:myOtherFancyTemplate2} ;</span>
+
+<span class="pl-k">dataType</span> = grid
+...</pre></div>
+
+<p>As can be seen, the variables (in the form <code>${section:option}</code>) in both <code>.ini</code> files are interpolated, and can be used all over the place.
+Also environment variables are possible, specified by the syntax <code>ENV::Variable</code>.</p>
+
+<p>The user is free to add arbitrary variable definitions and use those in other templates (any text based files such as <code>.xml,.txt,.json</code> etc.) for example the <code>myOtherFancyTemplate</code> or <code>myOtherFancyTemplate2</code> above.
+The job generator uses <code>.ini</code> files because they allow comments and explanations which is pleasing. (That might possible change in the future to support also <code>.json</code> files)
+The options under the <code>Template</code> section specifies the template files to be substituted, if no same option is present under the <code>TemplateOut</code> section which specifies the output file, the files are writte0 by default n to the folder <code>${Job:scriptDir}</code></p>
+
+<p>The <code>myOtherFancyTemplate2</code> is a template where the string in <code>{...}</code> is parsed as JSON string and allows the user to specify a special template adjuster (substituter). The default one is the one given above, namely the <code>DictionaryAdjuster</code> in <code>jobGenerators/dictionaryAdjuster.py</code> which can be given a set of other <code>"additionalFiles"</code> (JSON files) which are parsed and added to the set of replacement strings. This means the <code>${General:jobDir}/templates/input2.txt</code> under the section can contain dictionary references, e.g. <code>${gaga2:dic1:dic2:dic3:value}</code>, given in the json file <code>${General:jobDir}/data/DataVisSettings.json</code> and also references to variables in the <code>.ini</code> files.</p>
+
+<p>If you look at the output folder <code>examples/simple/cluster/Launch_MyDataVisualization.0</code>, you will find all configured scripts, bash scripts to launch the MPI job.</p>
+
+<p>Of course this is only a simple example. A more difficult example is provided by a an Image Correlation Task where each MPI process executes a tool pipeline consisting of some image processing and afterwards some image correlation, this job is explained in the following to give the user more insight how this tool works and how it can be extended.</p>
+
+<h2>
+<a id="parallel-image-coorelation-job" class="anchor" href="#parallel-image-coorelation-job" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Parallel Image Coorelation Job</h2>
+
+<p>to be continued</p>
+
+<h2>
+<a id="stuff-to-remember" class="anchor" href="#stuff-to-remember" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Stuff to Remember:</h2>
+
+<p>Important stuff to be documented:</p>
+
+<ul>
+<li>${Job:localDir} might only become a valid absolut path if fully expanded by Bash on a cluster (might contain Job specific variable such as $TMPDIR which are not clear at configuration time)
+However, this is rarely used in practice and absolute paths to the local directory on each node on the cluster is suggested. When using env. variables inside ${Job:localDir}, do not store the value ${Job:localDir} in configuration files which are not Bash scripts (because env. variables do not get expanded)! If you need localDir hand it to your executable and deal with it.</li>
+</ul>
+
+<h2>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dependencies</h2>
+
+<p>python 3, with modules:</p>
+
+<ul>
+<li>lxml</li>
+<li>glob2</li>
+<li>jsonpickle</li>
+<li>demjson</li>
+<li>AttrMap</li>
+</ul>
+        </section>
+
+        <footer>
+          HPCJobConfigurator is maintained by <a href="https://github.com/gabyx">gabyx</a><br>
+          This page was generated by <a href="https://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
