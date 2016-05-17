@@ -11,6 +11,7 @@
 source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
 
 function ES(){ echo "$(currTime) :: preProcess.sh: Rank: ${Job:processIdxVariabel}"; }
+
 # save stdout in file descriptor 4
 exec 4>&1
 

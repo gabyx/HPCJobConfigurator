@@ -13,7 +13,8 @@ source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/co
 
 
 function ES(){ echo "$(currTime) :: end.sh: "; }
-
+# save stdout in file descriptor 4
+exec 4>&1
 
 if [[ "${Cluster:mailAddress}" != "" ]];  then
     echo "EOM" | mail -s "Job: ${Job:jobName} has finished" "${Cluster:mailAddress}"
