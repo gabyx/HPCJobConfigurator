@@ -8,10 +8,13 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-    
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
+
+function ES(){ echo "$(currTime) :: end.sh: Rank: ${Job:processIdxVariabel}"; }
+
 SIMINFO=$( ${RigidBodySim:executableConverter} siminfo -i ${RigidBodySim:simFilePath} )
 if [[ "${Cluster:mailAddress}" != "" ]];  then
 echo -e "$SIMINFO" | mail -s "Job: ${Job:jobName} has finished" ${Cluster:mailAddress}
 fi
 
-exit 0
+exitFunction 0

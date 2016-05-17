@@ -9,21 +9,19 @@
 # =====================================================================
 
 
-function currTime(){ date +"%H:%M:%S.%3N"; }
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
+
 function ES(){ echo "$(currTime) :: start.sh: "; }
 
-
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; exit 1 ; }
-try() { "$@" || die "cannot $*"; }
-
+# save stdout in file descriptor 4
+exec 4>&1
 
 if [[ "${Cluster:mailAddress}" != "" ]] ;  then
     echo "EOM" | mail -s "Job: ${Job:jobName} has started" "${Cluster:mailAddress}"
 fi
 
 #echo "Make global dir ${Job:globalDir}" 
-try mkdir -p "${Job:globalDir}"
+tryNoCleanUp mkdir -p "${Job:globalDir}"
 
 
-exit 0
+exitFunction 0

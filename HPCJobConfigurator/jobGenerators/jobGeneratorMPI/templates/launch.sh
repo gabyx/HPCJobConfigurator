@@ -8,7 +8,8 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){ date +"%H:%M:%S.%3N"; }
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
+
 function ES(){ echo "$(currTime) :: launch.sh:"; }
 
 # Trick the batch system to see this script as an MPI
@@ -21,6 +22,7 @@ stage=0
 signalReceived="False"
 cleaningUp="False"
 
+# overwrite exitFunction
 function exitFunction(){
     
     echo "$(ES) Exiting: exit code: $1 (0=success), stage: ${stage}"
@@ -32,13 +34,6 @@ function exitFunction(){
     else
       exit $1
     fi
-}
-
-function trap_with_arg() {
-    func="$1" ; shift
-    for sig ; do
-        trap "$func $sig" "$sig"
-    done
 }
 
 
@@ -72,12 +67,10 @@ function cleanup(){
     fi
 }
 
-function ignoreAllSignals(){
-    echo "$(ES) already shutting down: ignoring signal: $1"
-}
+
 function shutDownHandler() {
     # make ignoring all signals
-    trap_with_arg ignoreAllSignals SIGINT SIGTERM SIGUSR1 SIGUSR2 
+    trap_with_arg ignoreSignal SIGINT SIGTERM SIGUSR1 SIGUSR2 
 
     signalReceived="True"
     
@@ -90,33 +83,12 @@ function shutDownHandler() {
     fi
 }
 
-function printTime(){
-    dt=$(echo "$2 - $1" | bc)
-    dd=$(echo "$dt/86400" | bc)
-    dt2=$(echo "$dt-86400*$dd" | bc)
-    dh=$(echo "$dt2/3600" | bc)
-    dt3=$(echo "$dt2-3600*$dh" | bc)
-    dm=$(echo "$dt3/60" | bc)
-    ds=$(echo "$dt3-60*$dm" | bc)
-    printf "$(ES) Time Elapsed: %d:%02d:%02d:%02.4f\n" $dd $dh $dm $ds
-}
-
-function launchInForeground(){
-  start=$(date +%s.%N) ;
-  "$@"
-  res=$?      
-  end=$(date +%s.%N) ;
-  printTime $start $end ;
-  return $res  
-}
-
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; cleanup ; exitFunction 111; }
-try() { "$@" || die "$(ES) cannot $*"; }
-
-
 # Setup the Trap
 trap_with_arg shutDownHandler SIGINT SIGTERM SIGUSR1 SIGUSR2 
+
+# save stdout in file descriptor 4
+exec 4>&1
+
 
 echo "$(ES) Execute Start ========================"
 # stage which indicates in which state the program was, 0= nothing executed, 1=proprocess executed, 2=launch executed, 3= post executed

@@ -8,93 +8,72 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){ date +"%H:%M:%S.%3N"; }
+# Source all common functions
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
+
+if [[ -z "${Job:processIdxVariabel}" ]]; then
+    echo "Rank not defined! "
+    exitFunction 111
+fi
+
 function ES(){ echo "$(currTime) :: process.sh: Rank: ${Job:processIdxVariabel}"; }
 
 executionDir=$(pwd)
-
 thisPID="$BASHPID"
+stage=0
 signalReceived="False"
 cleaningUp="False"
 
-# save stdout in file descriptor 4
-exec 4>&1
 
-
-
-function trap_with_arg() {
-    func="$1" ; shift
-    for sig ; do
-        trap "$func $sig" "$sig"
-    done
-}
-
-function printTime(){
-    dt=$(echo "$2 - $1" | bc)
-    dd=$(echo "$dt/86400" | bc)
-    dt2=$(echo "$dt-86400*$dd" | bc)
-    dh=$(echo "$dt2/3600" | bc)
-    dt3=$(echo "$dt2-3600*$dh" | bc)
-    dm=$(echo "$dt3/60" | bc)
-    ds=$(echo "$dt3-60*$dm" | bc)
-    printf "$(ES) Time Elapsed: %d:%02d:%02d:%02.4f\n" $dd $dh $dm $ds
-}
-function launchInForeground(){
-  start=$(date +%s.%N) ;
-  "$@"
-  res=$?
-  end=$(date +%s.%N) ;
-  printTime $start $end ;
-  return $res
+function cleanup(){
+  echo "$(ES) nothing to cleanup!"
 }
 
 function shutDownHandler() {
     # ignore all signals
-    trap_with_arg ignoreAllSignals SIGINT SIGUSR1 SIGUSR2 SIGTERM SIGPIPE
-
+    trap_with_arg ignoreSignal SIGINT SIGUSR1 SIGUSR2 SIGTERM
+    
     signalReceived="True"
-    #if [[ "${cleaningUp}" == "False" ]]; then
-      #echo "$(ES) Signal $1 catched, cleanup and exit."
-      #cleanup
-      #exitFunction 0
-    #else
-      #echo "$(ES) Signal $1 catched, we are already cleaning up, continue."
-    #fi
-    echo "$(ES) Signal $1 catched, exit..."
-    exitFunction 0
+    if [[ "${cleaningUp}" == "False" ]]; then
+      echo "$(ES) Signal $1 catched, cleanup and exit."
+      cleanup
+      exitFunction 0
+    else
+      echo "$(ES) Signal $1 catched, we are already cleaning up, continue."
+    fi
 }
 
-function ignoreAllSignals(){
-    echo "$(ES) already shutting down: ignoring signal: $1"
-}
-
-function exitFunction(){
-    echo "Exiting $(ES) exit code: $1 (0=success)" 1>&4
-    exit $1
-}
-
-yell() { echo "$0: $*" >&2; }
-die() { yell "$1"; cleanup ; exitFunction 111 ; }
-try() { "$@" || die "$(ES) cannot $*" ; }
-dieNoCleanUp() { yell "$1"; exitFunction 111 ; }
-tryNoCleanUp() { "$@" || die "$(ES) cannot $*" ;  }
-
+if [[ -z "${Job:processIdxVariabel}" ]]; then
+    echo "$(ES) Rank not defined! "
+    exit 1
+fi
 
 # Setup the Trap
 # Be aware that SIGINT and SIGTERM will be catched here, but if this script is run with mpirun
-# mpirun will forward SIGINT/SIGTERM (wait a bit) and then quit, leaving this script still running in the signal handler
+# mpirun will forward SIGINT/SIGTERM and then quit, leaving this script still running in the signal handler
 trap_with_arg shutDownHandler SIGINT SIGUSR1 SIGUSR2 SIGTERM SIGPIPE
 
+# Process folder ================================
+tryNoCleanUp mkdir -p "./nuetzig/local/GridVelocity-P-9.0/Process_${OMPI_COMM_WORLD_RANK}"
 
-tryNoCleanUp mkdir -p "${Job:processDir}"
+# Save processDir, it might be relative! and if signal handler runs 
+# using a relative path is not good
+cd "./nuetzig/local/GridVelocity-P-9.0/Process_${OMPI_COMM_WORLD_RANK}"
+processDir=$(pwd)
+# ========================================================
 
-logFile="${Job:processDir}/processLog.log"
-echo "$(ES) make process log file at: ${logFile}"
-
+# Output rerouting =======================================
+# save stdout in file descriptor 4
+exec 4>&1
+# put stdout and stderr into logFile
+logFile="${processDir}/processLog.log"
 #http://stackoverflow.com/a/18462920/293195
 exec 3>&1 1>>${logFile} 2>&1
+# filedescriptor 3 is still connected to the console
+# ========================================================
 
 echo "$(ES) starting executable ..."
+
 tryNoCleanUp ${Job:executableCommand}
 
 exitFunction 0

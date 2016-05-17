@@ -8,24 +8,21 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){ date +"%H:%M:%S.%3N"; }
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
+
 function ES(){ echo "$(currTime) :: preProcess.sh: Rank: ${Job:processIdxVariabel}"; }
-
-
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; exit 111; }
-try() { "$@" || die "cannot $*"; }
-
+# save stdout in file descriptor 4
+exec 4>&1
 
 echo "$(ES) Remove and Make Directory:  ${Job:localDir}"
 rm -r "${Job:localDir}" > /dev/null 2>&1
-try mkdir -p "${Job:localDir}"
+tryNoCleanUp mkdir -p "${Job:localDir}"
 
 if [[ "${Job:copyLocation}" != "" ]]; then
     echo "$(ES) Create: temp folder" 
-    try mkdir -p "${Job:localDir}/temp"
+    tryNoCleanUp mkdir -p "${Job:localDir}/temp"
     echo "$(ES) Copy files to node"
-    try cp -r "${Job:copyLocation}" "${Job:localDir}/temp/"
+    tryNoCleanUp cp -r "${Job:copyLocation}" "${Job:localDir}/temp/"
 fi
 
-exit 0
+exitFunction 0

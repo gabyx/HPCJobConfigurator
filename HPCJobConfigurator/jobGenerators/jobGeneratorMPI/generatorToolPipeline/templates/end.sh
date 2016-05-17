@@ -8,16 +8,16 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){ date +"%H:%M:%S.%3N"; }
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
+
 function ES(){ echo "$(currTime) :: end.sh: Rank: ${Job:processIdxVariabel}"; }
+
+# save stdout in file descriptor 4
+exec 4>&1
+
 
 logFile="${Job:scriptDir}/endLog.log"
 > $logFile
-
-
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; exit 111; }
-try() { "$@" || die "cannot $*"; }
 
 
 # Collects all FileInfos in each Process folder
@@ -25,8 +25,7 @@ try() { "$@" || die "cannot $*"; }
 # writes a new output FileInfo for this job
 executeFilevalidation(){
     # assemble pipeline status
-    PYTHONPATH=${General:configuratorModulePath}
-    export PYTHONPATH
+    export PYTHONPATH="${General:configuratorModulePath}:$PYTHONPATH"
     
     echo "$(ES) File validation: combine from Process ====" 1>>${logFile}
     python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \
@@ -48,8 +47,7 @@ executeFilevalidation(){
 # writes a new output FileInfo for this job
 executeFilevalidationAll(){
     # assemble pipeline status
-    PYTHONPATH=${General:configuratorModulePath}
-    export PYTHONPATH
+    export PYTHONPATH="${General:configuratorModulePath}:$PYTHONPATH"
     
     echo "$(ES) File validation: validate all files (manual) ===" 1>>${logFile}
     python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generateFileValidation  \
@@ -78,7 +76,7 @@ executeFilevalidation
 
 # manual validation if normal one failed ===============================
 # manually validate all files (use this function if executeFilevalidation failed)
-#try executeFilevalidationAll
+#tryNoCleanUp executeFilevalidationAll
 # ======================================================================
 
 

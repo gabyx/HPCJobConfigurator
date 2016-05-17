@@ -8,14 +8,12 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){ date +"%H:%M:%S.%3N"; }
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
+
 function ES(){ echo "$(currTime) :: start.sh: "; }
 
-    
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; exit 111; }
-try() { "$@" || die "cannot $*"; }
-
+# save stdout in file descriptor 4
+exec 4>&1
 
 logFile="${Job:scriptDir}/startLog.log"
 > $logFile
@@ -23,7 +21,7 @@ logFile="${Job:scriptDir}/startLog.log"
 # preperation for render job
 PYTHONPATH=${General:configuratorModulePath}
 export PYTHONPATH
-try python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.prepareToolPipeline  \
+tryNoCleanUp python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.prepareToolPipeline  \
         --pipelineSpecs="${Pipeline:pipelineSpecs}" \
         --validationFileInfo  "${Pipeline-PreProcess:validationInfoFile}"\
         --processes ${Cluster:nProcesses} \
@@ -35,7 +33,7 @@ if [[ "${Cluster:mailAddress}" != "" ]] ;  then
 fi
 
 echo "$(ES) Make global dir ${Job:globalDir}" >> $logFile 2>&1 
-try mkdir -p "${Job:globalDir}"
+tryNoCleanUp mkdir -p "${Job:globalDir}"
 
 
-exit 0
+exitFunction 0

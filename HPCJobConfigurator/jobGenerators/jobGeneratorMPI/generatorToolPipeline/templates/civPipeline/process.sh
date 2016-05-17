@@ -9,162 +9,168 @@
 # =====================================================================
 
 
+# Source all common functions
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
 
-ES="process.sh:"
+if [[ -z "${Job:processIdxVariabel}" ]]; then
+    echo "Rank not defined! "
+    exitFunction 111
+fi
 
-# store initial stdout to 3
-exec 3>&1 
+function ES(){ echo "$(currTime) :: process.sh: Rank: ${Job:processIdxVariabel}"; }
 
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; cleanup ; exit 111 ; }
-try() { "$@" || die "Rank: ${Job:processIdxVariabel}: cannot $*"; }
+executionDir=$(pwd)
+thisPID="$BASHPID"
+stage=0
+signalReceived="False"
+cleaningUp="False"
 
-# trap echo gets redirected to initial stdout =  3
-function trap_with_arg() {
-    func="$1" ; shift
-    for sig ; do
-        trap "$func $sig 1>&3" "$sig"
-    done
-}
 
 function cleanup(){
+    
     echo "$ES Rank: ${Job:processIdxVariabel}: do cleanup!  ============"
+    cd ${executionDir}
     ${Pipeline:cleanUpCommand}
     
     # remove process temporary directory
-    echo "$ES Rank: ${Job:processIdxVariabel}: remove temp directory: ${Job:processDir}/temp"
-    rm -r ${Job:processDir}/temp > /dev/null 2>&1
-    
+    echo "$ES Rank: ${Job:processIdxVariabel}: remove temp directory: ${processDir}/temp"
+    rm -r ${processDir}/temp > /dev/null 2>&1
     
     echo "$ES Rank: ${Job:processIdxVariabel}: cleanup finished ========"
-    exit $1
 }
 
 function handleSignal() {
     echo "$ES Rank: ${Job:processIdxVariabel}: Signal $1 catched, cleanup and exit."
-    cleanup  0
+    cleanup
 }
 
+function shutDownHandler() {
+    # ignore all signals
+    trap_with_arg ignoreSignal SIGINT SIGUSR1 SIGUSR2 SIGTERM
+    
+    signalReceived="True"
+    if [[ "${cleaningUp}" == "False" ]]; then
+      echo "$(ES) Signal $1 catched, cleanup and exit."
+      cleanup
+      exitFunction 0
+    else
+      echo "$(ES) Signal $1 catched, we are already cleaning up, continue."
+    fi
+}
+
+
 # Setup the Trap
-trap_with_arg handleSignal SIGINT SIGTERM SIGUSR1 SIGUSR2
+# Be aware that SIGINT and SIGTERM will be catched here, but if this script is run with mpirun
+# mpirun will forward SIGINT/SIGTERM and then quit, leaving this script still running in the signal handler
+trap_with_arg shutDownHandler SIGINT SIGUSR1 SIGUSR2 SIGTERM SIGPIPE
 
+# Process folder ================================
+tryNoCleanUp mkdir -p "${Job:processDir}"
 
-if [[ -z "${Job:processIdxVariabel}" ]]; then
-    echo "$ES Rank not defined! "
-    exit 1
-fi
+# Save processDir, it might be relative! and if signal handler runs 
+# using a relative path is not good
+cd "${Job:processDir}"
+processDir=$(pwd)
+# ========================================================
 
-rm -fr ${Job:processDir} > /dev/null 2>&1
-try mkdir -p ${Job:processDir}
-cd ${Job:processDir}
+# Output rerouting =======================================
+# save stdout in file descriptor 4
+exec 4>&1
+# put stdout and stderr into logFile
+logFile="${processDir}/processLog.log"
+#http://stackoverflow.com/a/18462920/293195
+exec 3>&1 1>>${logFile} 2>&1
+# filedescriptor 3 is still connected to the console
+# ========================================================
 
 
 # Process Stuff ===================================================================================================================
 
-
-logFile="${Job:processDir}/processLog.log"
-:> $logFile
-
-
 # Set important PYTHON stuff
-export PYTHONPATH=${General:configuratorModulePath}
+export PYTHONPATH="${General:configuratorModulePath}:$PYTHONPATH"
 # matplotlib directory
 export MPLCONFIGDIR=${Job:processDir}/temp/matplotlib
 try mkdir -p $MPLCONFIGDIR
 
 executeFileMove(){
     python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.fileMove \
-        -p "$fileMoverProcessFile" >> $logFile 2>&1 
+        -p "$fileMoverProcessFile" 
     return $?
 }
 
-echo "File Mover =======================================================" >> $logFile
-echo "Search file move process file ..." >> $logFile
+echo "File Mover =======================================================" 
+echo "Search file move process file ..." 
 fileMoverProcessFile=$( python3 -c "print(\"${Pipeline-PreProcess:fileMoverProcessFile}\".format(${Job:processIdxVariabel}))" )
 
 if [ ! -f "$fileMoverProcessFile" ]; then
-    echo "File mover process file (.xml) not found! It seems we are finished moving files! (file: $fileMoverProcessFile)" >> $logFile
+    echo "File mover process file (.xml) not found! It seems we are finished moving files! (file: $fileMoverProcessFile)" 
     
 else
-    echo "File mover process file : $fileMoverProcessFile" >> $logFile
-    echo "Start moving files" >> $logFile
-    echo "Change directory to ${Job:processDir}" >> $logFile
-    cd ${Job:processDir}
+    echo "File mover process file : $fileMoverProcessFile"
+    echo "Start moving files" 
+    echo "Change directory to ${Job:processDir}"
+    cd ${processDir}
 
-    begin=$(date +"%s")
-    try executeFileMove
-    termin=$(date +"%s")
-    difftimelps=$(($termin-$begin))
-    echo "File mover statistics: $(($difftimelps / 60)) minutes and $(($difftimelps % 60)) seconds elapsed." >> $logFile  
+    try launchInForeground python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.fileMove \
+        -p "$fileMoverProcessFile"  
       
 fi
-echo "==================================================================" >> $logFile
-cd ${Job:processDir}
+echo "==================================================================" 
+cd ${processDir}
 
 
 executeConverter(){
     python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generalPipeline.generalProcess \
-        -p "$converterProcessFile"   >> $logFile 2>&1 
+        -p "$converterProcessFile"    2>&1 
     return $?
 }
 
-echo "Converter ========================================================" >> $logFile
-echo "Search converter process file ..." >> $logFile
+echo "Converter ========================================================" 
+echo "Search converter process file ..." 
 converterProcessFile=$( python3 -c "print(\"${Pipeline:converterProcessFile}\".format(${Job:processIdxVariabel}))" )
 
 if [ ! -f "$converterProcessFile" ]; then
-    echo "Converter process file (.xml) not found! It seems we are finished converting! (file: $converterProcessFile)" >> $logFile
+    echo "Converter process file (.xml) not found! It seems we are finished converting! (file: $converterProcessFile)" 
     
 else
-    echo "Converter process file : $converterProcessFile" >> $logFile
-    echo "Start converting the files" >> $logFile
-    echo "Change directory to ${Pipeline:converterExecutionDir}" >> $logFile
+    echo "Converter process file : $converterProcessFile" 
+    echo "Start converting the files" 
+    echo "Change directory to ${Pipeline:converterExecutionDir}" 
     cd ${Pipeline:converterExecutionDir}
     
-    begin=$(date +"%s")
-    try executeConverter
-    termin=$(date +"%s")
-    difftimelps=$(($termin-$begin))
-    echo "Converter statistics: $(($difftimelps / 60)) minutes and $(($difftimelps % 60)) seconds elapsed." >> $logFile  
+    try launchInForeground python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generalPipeline.generalProcess \
+        -p "$converterProcessFile"
       
 fi
-echo "==================================================================" >> $logFile
-cd ${Job:processDir}
+echo "==================================================================" 
+cd ${processDir}
 
 
-executeCorrelator(){
-    python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generalPipeline.generalProcess \
-        -p "$correlatorProcessFile"   >> $logFile 2>&1 
-    return $?
-}
-
-echo "Correlator =======================================================" >> $logFile
-echo "Search correlator process file ..." >> $logFile
+echo "Correlator =======================================================" 
+echo "Search correlator process file ..." 
 correlatorProcessFile=$( python3 -c "print(\"${Pipeline:correlatorProcessFile}\".format(${Job:processIdxVariabel}))" )
 
 if [ ! -f "$correlatorProcessFile" ]; then
-    echo "Correlator process file (.xml) not found! It seems we are finished correlatoring! (file: $correlatorProcessFile)" >> $logFile
+    echo "Correlator process file (.xml) not found! It seems we are finished correlatoring! (file: $correlatorProcessFile)" 
 else
-    echo "Correlator process file : $correlatorProcessFile" >> $logFile
-    echo "Start correlating the files" >> $logFile
-    echo "Change directory to ${Pipeline:correlatorExecutionDir}" >> $logFile
+    echo "Correlator process file : $correlatorProcessFile" 
+    echo "Start correlating the files" 
+    echo "Change directory to ${Pipeline:correlatorExecutionDir}" 
     cd ${Pipeline:correlatorExecutionDir}
     
-    begin=$(date +"%s")
-    try executeCorrelator
-    termin=$(date +"%s")
-    difftimelps=$(($termin-$begin))
-    echo "correlator statistics: $(($difftimelps / 60)) minutes and $(($difftimelps % 60)) seconds elapsed." >> $logFile    
+    try launchInForeground python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline.scripts.generalPipeline.generalProcess \
+        -p "$correlatorProcessFile" 
+   
             
 fi
-echo "================================================================== " >> $logFile
-cd ${Job:processDir}
+echo "================================================================== " 
+cd ${processDir}
 
-echo "Final cleanup ====================================================" >> $logFile
+echo "Final cleanup ====================================================" 
 cleanup
-echo "================================================================== " >> $logFile
+echo "================================================================== " 
 
 
-exit 0 
+exitFunction 0 
 
 # =======================================================================================================================================

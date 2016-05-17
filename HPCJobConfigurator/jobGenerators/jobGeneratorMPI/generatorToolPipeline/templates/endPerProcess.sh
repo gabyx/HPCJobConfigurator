@@ -8,20 +8,17 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){ date +"%H:%M:%S.%3N"; }
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
+
 function ES(){ echo "$(currTime) :: endPerProcess.sh: Rank: ${Job:processIdxVariabel}"; }
 
-
-yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; exit 111; }
-try() { "$@" || die "cannot $*"; }
-
+# save stdout in file descriptor 4
+exec 4>&1
 
 #  Validate all files in process folder
 #  each process validates 
 
-PYTHONPATH=${General:configuratorModulePath}
-export PYTHONPATH
+export PYTHONPATH="${General:configuratorModulePath}:$PYTHONPATH"
 
 # put stdout and stderr into process logFile
 procLogFile="${Pipeline-PostProcess:validationSearchDirProcess}/processLog.log"
@@ -35,5 +32,5 @@ python -m HPCJobConfigurator.jobGenerators.jobGeneratorMPI.generatorToolPipeline
 
 echo "$(ES) ==========================================" 1>>${procLogFile}
     
-exit $?
+exitFunction $?
 

@@ -8,8 +8,10 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
- 
-function currTime(){ date +"%H:%M:%S.%3N" ; }
+
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
+
+
 function ES(){ echo "$(currTime) :: end.sh: "; }
 
 
@@ -17,4 +19,4 @@ if [[ "${Cluster:mailAddress}" != "" ]];  then
     echo "EOM" | mail -s "Job: ${Job:jobName} has finished" "${Cluster:mailAddress}"
 fi
 
-exit 0
+exitFunction 0

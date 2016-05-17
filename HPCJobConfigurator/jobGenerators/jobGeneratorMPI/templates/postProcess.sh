@@ -8,9 +8,12 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 # =====================================================================
 
-function currTime(){ date +"%H:%M:%S.%3N"; }
+source ${General:configuratorModuleDir}/jobGenerators/jobGeneratorMPI/scripts/commonFunctions.sh
+
 function ES(){ echo "$(currTime) :: postProcess.sh: Rank: ${Job:processIdxVariabel}"; }
 
+# save stdout in file descriptor 4
+exec 4>&1
 
 echo "$(ES) Copy Directory: ${Job:localDir} "
 
@@ -44,4 +47,4 @@ if [[ "${Job:localDir}" != "${Job:globalDir}" ]]; then
     rm -rf "${Job:localDir}"
 fi
 
-exit 0
+exitFunction 0
