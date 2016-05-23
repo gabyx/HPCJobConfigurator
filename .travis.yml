@@ -16,7 +16,7 @@ script:
   - nosetests
 
   - echo "Testing Examples"
-  - set -x # all errors result in failure
+  - set -e # all errors result in failure
   - echo "Test Simple Example:"
   - cd examples/simple
   - export MYGLOBALSCRATCH_DIR="$(pwd)/scratch/global"
