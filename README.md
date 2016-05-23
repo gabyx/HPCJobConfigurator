@@ -1,4 +1,7 @@
 # Job Configurator for Cluster Computing
+
+![Build Status](https://travis-ci.org/gabyx/GRSFramework.svg?branch=master)
+
 ## Python module to generate highly configurable user-defined jobs on a high-performance cluster
 
 If you are doing high performance computing on a linux cluster and are bored from dealing with tons of configurations files for maintaining a parallel job configuration.
