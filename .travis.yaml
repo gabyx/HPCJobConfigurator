@@ -1,0 +1,25 @@
+language: python
+python:
+  - "3.2"
+  - "3.3"
+  - "3.4"
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+  - source ./activate
+  
+  
+# command to run tests
+script: 
+
+  - echo "Run tests:"
+  - nosetests
+
+  - echo "Testing Examples"
+  - set -x # all errors result in failure
+  - echo "Test Simple Example:"
+  - cd examples/simple
+  - export MYGLOBALSCRATCH_DIR="$(pwd)/scratch/global"
+  - export MYLOCALSCRATCH_DIR="$(pwd)/scratch/local"
+  - yes "y" | configJob -x JobConfig.ini
+  

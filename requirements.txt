@@ -1,0 +1,5 @@
+lxml>=3.4.4
+glob2>=0.4.1
+jsonpickle>=0.9.3
+demjson>=2.2.4
+attrdict>=2.0.0
