@@ -1,5 +1,7 @@
 #!/bin/bash
 
+shopt -s expand_aliases
+
 source ./activate
 echo "Run tests:"
 nosetests
