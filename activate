@@ -3,12 +3,6 @@
 # the simulators of the GRSFramework
 
 
-if [[ ! -v GRSF_REPO_BUILD_DIR ]]; then
-  echo "Define GRSF_REPO_BUILD_DIR variable first!"
-fi
-
-
-
 export HPCJOBCONFIGURATOR_REPO_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 export HPCJOBCONFIGURATOR_DIR=${HPCJOBCONFIGURATOR_REPO_DIR}
