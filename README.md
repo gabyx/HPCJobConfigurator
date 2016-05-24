@@ -1,6 +1,6 @@
 # Job Configurator for Cluster Computing
 
-![Build Status](https://travis-ci.org/gabyx/GRSFramework.svg?branch=master)
+![Build Status](https://travis-ci.org/gabyx/HPCJobConfigurator.svg?branch=master)
 
 ## Python module to generate highly configurable user-defined jobs on a high-performance cluster
 
