@@ -366,7 +366,7 @@ class Generator:
                 configuratorFunc = self.templateConfigurators[configuratorHash];
                 
                 # configure file
-                configuratorFunc(generator, inFile, outFile, self.configDict, configDicts, **settings )
+                configuratorFunc(generator, inFile, outFile, self.configDict, configDicts, verbose=self.cCluster.verbose, **settings )
                 
             else:
                 # use standart dictionary adjuster as default

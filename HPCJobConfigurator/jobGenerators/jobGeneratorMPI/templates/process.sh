@@ -54,11 +54,11 @@ fi
 trap_with_arg shutDownHandler SIGINT SIGUSR1 SIGUSR2 SIGTERM SIGPIPE
 
 # Process folder ================================
-tryNoCleanUp mkdir -p "./nuetzig/local/GridVelocity-P-9.0/Process_${OMPI_COMM_WORLD_RANK}"
+tryNoCleanUp mkdir -p "${Job:processDir}"
 
 # Save processDir, it might be relative! and if signal handler runs 
 # using a relative path is not good
-cd "./nuetzig/local/GridVelocity-P-9.0/Process_${OMPI_COMM_WORLD_RANK}"
+cd "${Job:processDir}"
 processDir=$(pwd)
 # ========================================================
 

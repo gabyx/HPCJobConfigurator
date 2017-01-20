@@ -22,7 +22,7 @@ class XmlAdjuster:
         self.cF = jobGenModules["commonFunctions"]
         self.iH = jobGenModules["importHelpers"]
     
-    def __call__(self, generator, inputFile, outputFile, configDict, lastConfigDicts, **kwargs):
+    def __call__(self, generator, inputFile, outputFile, configDict, lastConfigDicts, verbose=True, **kwargs):
         
         """ 
             Template configurator:
@@ -64,8 +64,9 @@ class XmlAdjuster:
         ####
         
         for t in transforms:
-
-                print("\tXmlAdjuster: transforming %s ..." % t['xpath'])
+                
+                if verbose:
+                    print("\tXmlAdjuster: transforming %s ..." % t['xpath'])
                 nodes = root.findall(t["xpath"])
                 if not nodes:
                     raise ValueError("No nodes found for transform %s" % t)
