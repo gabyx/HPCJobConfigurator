@@ -97,10 +97,10 @@ def configJob(configFile="Launch.ini", overwriteArgs = None, colorOutput=False):
                one you should enter here the additional arguments to ${Cluster:submitCommand} to make that happen.
                This argument is fully evaluated and appended to the next jobs ${Cluster:submitCommand} !""")  
     p.add( "-v","--verbose", type=str, default="False",
-          help="""Shows additional information, (depending on the generator)""")
+          help="""Shows additional information, (depending on the generator), usage: --verbose=True """)
     
     p.add( "-i","--interact", type=str, default="True",
-          help="""Interact with the user. If True, the script may interact when certain errors appear. Such as removing directories and so on.""") 
+          help="""Interact with the user. If True, the script may interact when certain errors appear. Such as removing directories and so on. usage: --interact=False """) 
    
     args = p.parse_args()
     print(p.format_values()) 

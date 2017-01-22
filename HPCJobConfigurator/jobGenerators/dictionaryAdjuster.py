@@ -32,17 +32,17 @@ class DictionaryAdjuster:
     
     # General recursive formatter
     def stringFormatter(self,v):
-      if isinstance(v,list):
-        print("LIST::::" , v)
-        s=""
-        for i in v[:-1]:
-            s+=self.stringFormatter(i)+" "
-        s+=self.stringFormatter(v[-1])
-        return s
-      elif isinstance(v,bool):
-        return "true" if v else "false"
-      else:
-        return str(v)
+        if isinstance(v,list):
+            print("LIST::::" , v)
+            s=""
+            for i in v[:-1]:
+                s+=self.stringFormatter(i)+" "
+            s+=self.stringFormatter(v[-1])
+            return s
+        elif isinstance(v,bool):
+            return "true" if v else "false"
+        else:
+            return str(v)
         
     
     def __init__(self,jobGenModules):
@@ -64,7 +64,7 @@ class DictionaryAdjuster:
             e.g ${AA:a:d} ->  "3"
             makeReplacementOnceForId=True only converts for each  typeid(conficDict) once!
         """
-
+        
         for fileSpec in additionalFiles:
           
           if not isinstance(fileSpec,dict):

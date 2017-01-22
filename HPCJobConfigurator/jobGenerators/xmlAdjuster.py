@@ -50,7 +50,6 @@ class XmlAdjuster:
         # Change XML FILE ===================================================================================    
         #ET.register_namespace('', kwargs["defaultNamespace"]) # code to make output not using any stupid namespace ":ns0"
         # (load xml wile removeing all namespaces!!!)
-        print("XmlAdjuster:: adjust  %s  ---->  %s " % (inputFile,outputFile))
         f = open(inputFile, 'r')
         tree = ET.parse(f)
         root = tree.getroot()

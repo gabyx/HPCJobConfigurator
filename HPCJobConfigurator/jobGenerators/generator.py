@@ -359,7 +359,10 @@ class Generator:
                  # load the special configurator if not loaded yet
                 if configuratorHash not in self.templateConfigurators:
                     
-                    print("Instantiate configurator: " , configurator )
+                    if self.cCluster.verbose:
+                        print("Generator:: Running template configurator: " , configurator )
+                        print(" \tinputFile: %s\n" % inFile if inFile else "" + "\toutputFile: %s" % outFile)
+                    
                     moduleType, classType = iH.importClassFromModule(**configurator)
                     self.templateConfigurators[configuratorHash] = classType({"commonFunctions":cF,"importHelpers":iH}) # make instance (hand over modules)
 
